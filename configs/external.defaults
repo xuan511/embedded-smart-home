@@ -1,0 +1,6 @@
+# Compile coverage profile only. Requires external hardware to run successfully.
+CONFIG_HOME_UI=n
+CONFIG_HOME_REAL_SENSORS=y
+CONFIG_HOME_SD_LOG=y
+CONFIG_HOME_CAMERA=y
+CONFIG_HOME_MCP_OUTPUTS=y
