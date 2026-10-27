@@ -1,5 +1,7 @@
 # USB-UART line protocol / 两板通信协议
 
+Korvo preserves the USB callback reception time through its queue. Queue delay counts toward freshness. Frames queued for at least 3000 ms are discarded; an ACK processed after the 1500 ms request deadline cannot complete the old operation. Delayed queue processing must never rejuvenate data or heartbeat age.
+
 Only the Korvo USB-A Host → **CP2102N (VID 10C4, PID EA60)** USB-UART → STM32 USART1 path is implemented. UART is **115200, 8 data bits, no parity, 1 stop bit, no RTS/CTS**. UART TX/RX levels must be 3.3 V. This is an application protocol carried over UART; it does not require STM32 USB firmware.
 
 ## Framing and validation

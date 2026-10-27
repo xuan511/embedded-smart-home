@@ -76,6 +76,59 @@ int main(void)
     cfg.fan_on_c = 28.002f; cfg.fan_off_c = 28.001f;
     home_remote_config(&r,&cfg);
     assert(r.desired.fan_off_c == 26.0f);
+    // USB callback time survives a delayed service/SD queue consumer.
+    home_remote_init(&r, NULL);
+    home_remote_attach(&r, 300, 0);
+    ready.v[0] = 300;
+    home_remote_receive(&r, &ready, 10);
+    assert(home_remote_poll(&r, 10, &tx) && tx.type == HL_CONFIG);
+    ack = status(&r, tx.v[1]);
+    home_remote_receive(&r, &ack, 20);
+    cfg = home_default_config(); cfg.stale_ms = 1000;
+    home_remote_config(&r, &cfg);
+    assert(home_remote_poll(&r, 30, &tx) && tx.type == HL_CONFIG);
+    ack = status(&r, tx.v[1]);
+    home_remote_receive(&r, &ack, 40);
+    ack = status(&r, 0);
+    home_remote_receive_at(&r, &ack, 100, 1600);
+    home_remote_view(&r, 1600, &view, &online, &stale);
+    assert(r.last_rx == 100 && r.sample_received == 100);
+    assert(online && stale && view.temperature_fault && view.light_fault);
+    // Traffic queued for a full link timeout cannot revive either link or data.
+    home_remote_receive_at(&r, &ack, 200, 4000);
+    assert(r.last_rx == 100);
+    home_remote_view(&r, 4000, &view, &online, &stale);
+    assert(!online && stale);
+    assert(home_remote_poll(&r, 4000, &tx) && tx.type == HL_HELLO);
+    // A delayed READY must not cause CONFIG for an already expired session.
+    home_remote_attach(&r, 400, 0);
+    ready.v[0] = 400;
+    home_remote_receive_at(&r, &ready, 10, 3010);
+    assert(!r.ready);
+    assert(home_remote_poll(&r, 3010, &tx) && tx.type == HL_HELLO && r.session != 400);
+    // An ACK received in time but processed after the request deadline remains
+    // pending, so poll returns a fresh handshake instead of marking success.
+    home_remote_attach(&r, 500, 0);
+    ready.v[0] = 500;
+    home_remote_receive(&r, &ready, 10);
+    assert(home_remote_poll(&r, 10, &tx) && tx.type == HL_CONFIG);
+    ack = status(&r, tx.v[1]);
+    home_remote_receive(&r, &ack, 20);
+    assert(home_remote_request(&r, HL_SET, 0, 1, 30, &tx));
+    ack = status(&r, tx.v[1]);
+    home_remote_receive_at(&r, &ack, 40, 1530);
+    assert(r.pending);
+    assert(home_remote_poll(&r, 1530, &tx) && tx.type == HL_HELLO && r.session != 500);
+    assert(!r.have_status && !r.synced);
+    // Real reception age also remains correct across the 32-bit clock rollover.
+    home_remote_attach(&r, 600, UINT32_MAX - 200);
+    ready.v[0] = 600;
+    home_remote_receive_at(&r, &ready, UINT32_MAX - 190, UINT32_MAX - 180);
+    assert(home_remote_poll(&r, UINT32_MAX - 180, &tx) && tx.type == HL_CONFIG);
+    ack = status(&r, tx.v[1]);
+    home_remote_receive_at(&r, &ack, UINT32_MAX - 100, 20);
+    home_remote_view(&r, 30, &view, &online, &stale);
+    assert(r.sample_received == UINT32_MAX - 100 && online && !stale);
     puts("Korvo remote state tests: PASS");
     return 0;
 }

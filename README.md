@@ -14,6 +14,8 @@ ESP 目标必须为 **`esp32s31`**，不套用 `esp32s3` 的引脚和配置。ST
 
 **当前没有连接实物板，所有真机联调均未进行。** 代码完成、编译通过、主机测试通过、真机验证通过分别记录于 [VALIDATION](docs/VALIDATION.md)。编译或测试数据不等于实测。前一步在板上验收通过，再增加下一步外设。
 
+Korvo 是**人机操作、参数和显示的上位控制中枢**；STM32 是**采集与执行节点**，按既定需求独立执行本地自动规则。官方能力、固定源码和社区证据见 [支持性与验证溯源](docs/SUPPORT_EVIDENCE.md)。
+
 ## 接线前先看
 
 [硬件清单、实际接口、供电与接线表](docs/HARDWARE.md)是接线依据；[硬件核查](docs/HARDWARE_AUDIT.md)区分官方事实和待确认项。仅需集中确认这些影响接线/烧录的信息：
@@ -71,6 +73,8 @@ idf.py --preview -p COM5 flash monitor
 将 `COM5` 换成设备管理器中 **Korvo UART Type-C** 对应端口。Power Type-C 仅供电，USB-A 为 Host；三个接口用途不同。自动下载失败时，按住 BOOT，按下并松开 RESET，再松开 BOOT 后重试。`Ctrl+]` 退出 monitor。
 
 默认未连接 STM32 时显示断开/等待，**不会生成模拟环境数据**。`idf.py --preview menuconfig → Smart Home` 可显式选择模拟模式（`CONFIG_HOME_SIMULATION`，默认关闭）、SD 日志和 LCD 开关。`configs/simulation.defaults` 提供显式模拟配置。修改默认配置不会覆盖已有 `sdkconfig`，更改后需重新构建/烧录。日志失败不格式化 SD 卡，不阻止核心控制。
+
+`check_environment.py` 会拒绝 SDK 提交不符、SDK 跟踪源码被修改、递归子模块缺失/不符、跳过子模块检查或 GCC 版本不符的环境。先完成官方安装流程，再编译；检查通过只表示环境一致，不表示真机通过。
 
 ### STM32：先只构建阶段 1
 

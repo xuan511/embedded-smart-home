@@ -4,7 +4,17 @@
 
 This record is for the two-board revision. Historical build claims in `bd7967a` do not validate this revision or any physical hardware.
 
-## 分开记录的状态 / Separate completion states
+## 本次支持性复核与修订
+
+官方能力与精确源码映射见 [SUPPORT_EVIDENCE](SUPPORT_EVIDENCE.md)，发布包及原理图字节标识见 [evidence-sources.json](evidence-sources.json)。下方原始大小/哈希专属实现提交 `7c69b1b26b6e7930b22a171229bde06f165ccb85`，不冒充本次时间修复后的新固件字节。
+
+已重新查询该提交 [PR CI](https://github.com/xuan511/embedded-smart-home/actions/runs/40497571500)：三个 ESP 配置、主机测试、STM32 共五个 job 及其编译/测试步骤均 success。实际 job 日志确认固定 SDK、完整递归子模块、官方 install/export/idf.py 命令；host 日志显示 SANITIZE=1 和五套测试通过。
+
+本修订修复 USB 队列丢失真实接收时间而可能把旧 STATUS 再次视为新数据的问题，新增延迟 STATUS/READY/ACK 与时钟回绕测试，五套本地主机测试通过。STM32 代码和线上格式未变；本次固件复验采用 CI 的完整官方安装流程。新提交结果按其准确 SHA 查看 [PR checks](https://github.com/xuan511/embedded-smart-home/pull/1/checks)，不能由旧提交的成功替代。
+
+严格环境检查已加入 CI：精确 SDK 提交、未改动的 SDK 跟踪源码、完整匹配的递归子模块、禁用检查绕过、GCC 16.1.0。本机先前的下载优化仅保留为历史记录，不充当完整官方安装验证。所有真机项目仍为 NOT RUN。
+
+## 原始实现提交的分项状态 / Implementation revision results
 
 | 范围 / Scope | 代码完成 / Implemented | 编译通过 / Built | 主机测试通过 / Host-tested | 真机验证通过 / Hardware-tested |
 | --- | --- | --- | --- | --- |
@@ -72,7 +82,7 @@ The local SDK/tool environment is isolated. Required submodules use exact pinned
 
 本轮最终三个 Ninja 构建进程退出码均为 0，应用和 bootloader 分区大小检查通过。交付包 evidence 目录保留主机测试及最终编译日志；firmware 目录提供对应配置和固件。不同目录/构建时间可能产生不同 BIN 字节，哈希只标识本次产物，不是跨环境可重复哈希保证。
 
-All three final build processes exited 0 and passed partition-size checks. The delivery includes actual logs and artifacts. Hashes identify these artifacts; paths/build times may change rebuilt bytes. Hosted GitHub Actions has **not been observed passing**; a configured workflow is not a CI result.
+All three build processes exited 0 and passed partition-size checks. Hashes identify those artifacts; paths/build times may change rebuilt bytes. The implementation commit CI was independently rechecked: [PR run 40497571500](https://github.com/xuan511/embedded-smart-home/actions/runs/40497571500) and [push run 40497527431](https://github.com/xuan511/embedded-smart-home/actions/runs/40497527431) completed successfully. These are results for that exact commit, not proof of hardware operation or of later revisions.
 
 复现（已激活固定 SDK 的工程根目录）/ Reproduce from the activated fixed SDK:
 

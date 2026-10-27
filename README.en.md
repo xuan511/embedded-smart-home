@@ -72,6 +72,10 @@ Replace `COM5` with the **Korvo UART Type-C** port in Device Manager. Power Type
 
 Without STM32, the default firmware displays disconnected/waiting and **does not invent measurements**. Use `idf.py --preview menuconfig → Smart Home` to explicitly select simulation (`CONFIG_HOME_SIMULATION`, disabled by default), optional SD logging or LCD. `configs/simulation.defaults` provides an explicit simulation profile. Defaults do not override an existing `sdkconfig`; rebuild and flash after changing settings. SD failures do not format the card or stop core control.
 
+Korvo is the supervisory control, configuration and display center; STM32 handles sensing, actuation and the specified local automatic rules. See the [official support evidence](docs/SUPPORT_EVIDENCE.md).
+
+The environment check requires the exact documented SDK commit and GCC, unchanged SDK sources, matching recursive submodules, and no submodule-check override. It verifies setup, not physical hardware.
+
 ### STM32: start with stage 1
 
 Run from the repository root; CMake loads the Arm toolchain file automatically:

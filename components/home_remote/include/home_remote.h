@@ -25,6 +25,9 @@ void home_remote_config(home_remote_t *r, const home_config_t *cfg);
 bool home_remote_request(home_remote_t *r, hl_type_t type, int a, int b,
                          uint32_t now, hl_message_t *out);
 void home_remote_receive(home_remote_t *r, const hl_message_t *m, uint32_t now);
+// Queue consumers must preserve the transport timestamp and supply current time.
+void home_remote_receive_at(home_remote_t *r, const hl_message_t *m,
+                            uint32_t received_ms, uint32_t processed_ms);
 bool home_remote_poll(home_remote_t *r, uint32_t now, hl_message_t *out);
 void home_remote_view(const home_remote_t *r, uint32_t now, home_state_t *out,
                       bool *online, bool *stale);

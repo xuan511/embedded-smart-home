@@ -84,7 +84,15 @@ bool home_remote_request(home_remote_t *r, hl_type_t type, int a, int b,
 
 void home_remote_receive(home_remote_t *r, const hl_message_t *m, uint32_t now)
 {
+    home_remote_receive_at(r, m, now, now);
+}
+
+void home_remote_receive_at(home_remote_t *r, const hl_message_t *m,
+                            uint32_t received_ms, uint32_t processed_ms)
+{
     if (!r->attached || m->v[0] != r->session) return;
+    // A stalled consumer must not make buffered old traffic fresh again.
+    if ((uint32_t)(processed_ms - received_ms) >= 3000u) return;
     if (m->type == HL_READY) {
         // Repeated READY cannot cancel a CONFIG in flight.
         if (!r->ready) {
@@ -92,11 +100,11 @@ void home_remote_receive(home_remote_t *r, const hl_message_t *m, uint32_t now)
             r->config_dirty = true;
         }
         r->stage = (int)m->v[1];
-        r->last_rx = now;
+        r->last_rx = received_ms;
         return;
     }
     if (m->type != HL_STATUS || !r->ready) return;
-    r->last_rx = now;
+    r->last_rx = received_ms;
     r->have_status = true;
     r->source = (int)m->v[3];
     r->reported.automatic = m->v[4] != 0;
@@ -109,12 +117,14 @@ void home_remote_receive(home_remote_t *r, const hl_message_t *m, uint32_t now)
         .temperature_valid = (m->v[10] & 1) != 0,
         .humidity_valid = (m->v[10] & 2) != 0,
         .light_valid = (m->v[10] & 4) != 0,
-        .timestamp_ms = now
+        .timestamp_ms = received_ms
     };
     home_accept_sample(&r->reported, &p);
     r->sample_age = (uint32_t)m->v[11];
-    r->sample_received = now;
-    if (r->pending && m->v[1] == r->pending_seq) {
+    r->sample_received = received_ms;
+    // An ACK processed after the deadline cannot cancel the timeout/reconnect.
+    if (r->pending && m->v[1] == r->pending_seq &&
+        (uint32_t)(processed_ms - r->sent_at) < 1500u) {
         r->last_result = (int)m->v[2];
         r->timed_out = false;
         if (r->pending_type == HL_CONFIG && r->last_result == 0) {
@@ -122,7 +132,7 @@ void home_remote_receive(home_remote_t *r, const hl_message_t *m, uint32_t now)
             r->synced = !r->config_dirty;
         } else if (r->pending_type == HL_CONFIG) {
             r->ready = r->synced = false;
-            r->last_hello = now;
+            r->last_hello = processed_ms;
         }
         r->pending = false;
     }

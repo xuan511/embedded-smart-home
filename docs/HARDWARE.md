@@ -42,9 +42,11 @@ V1.1 原理图第 2 页：J2 的 1/2/3/4 分别为 VBUS、D−、D+、GND；它�
 
 J2 is the existing USB-A host connector. Use a USB cable/plug; no rewiring of dedicated USB pins, LCD, touch or SD is needed.
 
-Host 供电经过 U14 TPS2051C，官方标称最大 500mA；EN 在板上被拉高，不需要软件 GPIO 使能。`bsp_usb_host_start(BSP_USB_HOST_POWER_MODE_USB_DEV, true)` 启动 Host 和事件任务；本板实现未使用这两个电源参数。不要据 `true` 声称软件实现了限流，也不要把 `stop` 当成已验证的 VBUS 断电。外部风扇/灯不从 Host 口供电。依据：[官方 BSP USB 实现](https://github.com/espressif/esp-bsp/blob/master/bsp/esp32_s31_korvo_1/src/bsp_usb.c)。
+Host 供电经过 U14 TPS2051C，官方标称最大 500mA；EN 在板上被拉高，不需要软件 GPIO 使能。`bsp_usb_host_start(BSP_USB_HOST_POWER_MODE_USB_DEV, true)` 启动 Host 和事件任务；本板实现未使用这两个电源参数。不要据 `true` 声称软件实现了限流，也不要把 `stop` 当成已验证的 VBUS 断电。外部风扇/灯不从 Host 口供电。依据：[官方 BSP USB 实现](https://github.com/espressif/esp-bsp/blob/6db6acb86a7dd56d17bf42093d2119dd9b0c14f5/bsp/esp32_s31_korvo_1/src/bsp_usb.c)。
 
 The host port has a hardware current limiter. The BSP power arguments are unused on this board; software start/stop is not a verified power switch. Power the loads separately.
+
+**本版 CP210x 直接插 Korvo USB-A，不经 USB Hub。** S31 Host 的 HS/FS/LS 与 Hub Transaction Translator 限制见[官方 Host 文档](https://docs.espressif.com/projects/esp-usb/en/latest/esp32s31/usb_host.html#features-limitations)。
 
 ## 最小模块清单 / Minimum parts
 
@@ -136,9 +138,9 @@ Power the STM32 through a verified board input and flash it via SWD. Keep one in
 ## 官方依据 / Primary references
 
 - [Korvo V1.1 用户指南](https://docs.espressif.com/projects/esp-dev-kits/en/latest/esp32s31/esp32-s31-korvo-1/user_guide.html)；[V1.1 原理图](https://dl.espressif.com/schematics/esp32-s31-korvo-1-schematics.pdf)，页 2 电源/USB、页 3 MCU/LCD/SD。
-- [BSP 1.0.1](https://components.espressif.com/components/espressif/esp32_s31_korvo_1/versions/1.0.1)；[USB Host CDC 官方示例](https://github.com/espressif/esp-idf/tree/master/examples/peripherals/usb/host/cdc)；[CP210x Host 驱动 2.2.0](https://components.espressif.com/components/espressif/usb_host_cp210x_vcp/versions/2.2.0/readme)。
+- [BSP 1.0.1](https://components.espressif.com/components/espressif/esp32_s31_korvo_1/versions/1.0.1)；[USB Host CDC 官方示例](https://github.com/espressif/esp-idf/tree/d35ea023029363d97c42565f85e0db23486f26b2/examples/peripherals/usb/host/cdc)；[CP210x Host 驱动 2.2.0](https://components.espressif.com/components/espressif/usb_host_cp210x_vcp/versions/2.2.0/readme)。
 - [Silicon Labs CP2102N 数据表](https://www.silabs.com/documents/public/data-sheets/cp2102n-datasheet.pdf)；[Windows VCP 驱动](https://www.silabs.com/developer-tools/usb-to-uart-bridge-vcp-drivers)。
 - [ST STM32F103C8 数据表 DS5319](https://www.st.com/resource/en/datasheet/stm32f103c8.pdf)，表 5 引脚；[RM0008 寄存器手册](https://www.st.com/resource/en/reference_manual/cd00171190.pdf)。学习板 PCB 不属于 ST 官方板，MCU 手册不能证明其插座/LED 电路。
 - [Sensirion SHT3x-DIS 数据表](https://sensirion.com/media/documents/213E6A3B/63A5A569/Datasheet_SHT3x_DIS.pdf)。
-- BH1750 原 README 所给 ROHM 数据表链接本次返回 404；命令和换算另核对了 [Espressif 官方 BH1750 驱动](https://github.com/espressif/esp-iot-solution/tree/master/components/sensors/light_sensor/bh1750)。模块电源/上拉/ADDR 仍须按所购模块电路核查，不能声称已重新取得原厂数据表。
+- BH1750 原 README 所给 ROHM 数据表链接本次返回 404；命令和换算另核对了 [Espressif 官方 BH1750 驱动](https://github.com/espressif/esp-iot-solution/tree/7a813417274c663226601f390668b9c8e5eec768/components/sensors/light_sensor/bh1750)。模块电源/上拉/ADDR 仍须按所购模块电路核查，不能声称已重新取得原厂数据表。
 - [Adafruit 5648 引脚与接线](https://learn.adafruit.com/adafruit-mosfet-driver/pinouts)；[厂家电路源文件](https://github.com/adafruit/Adafruit-MOSFET-Driver-STEMMA-PCB)。

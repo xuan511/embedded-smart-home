@@ -128,21 +128,27 @@ static void controller_task(void *arg)
         if (!CONFIG_HOME_SIMULATION) {
             hl_message_t message;
             bool attached = false;
-            bool got = home_usb_poll(&message, &attached);
+            uint32_t received_ms = 0;
+            bool got = home_usb_poll(&message, &attached, &received_ms);
+            now = home_now_ms();
             if (attached && !was_attached)
                 home_remote_attach(&remote, (int32_t)(esp_random() & 0x7fffffffu), (uint32_t)now);
             if (!attached && was_attached) home_remote_detach(&remote);
             was_attached = attached;
             while (got) {
-                home_remote_receive(&remote, &message, (uint32_t)now);
-                if (message.type == HL_STATUS && message.v[0] == user_session &&
-                    user_seq && message.v[1] == user_seq) {
+                now = home_now_ms();
+                bool user_pending = user_seq && remote.pending &&
+                    remote.session == user_session && remote.pending_seq == user_seq;
+                home_remote_receive_at(&remote, &message, received_ms, (uint32_t)now);
+                if (user_pending && !remote.pending && message.type == HL_STATUS &&
+                    message.v[0] == user_session && message.v[1] == user_seq) {
                     snprintf(notice, sizeof(notice), "STM32 ACK seq=%ld result=%ld (0=OK); no physical feedback",
                         (long)user_seq, (long)message.v[2]);
                     user_seq = 0;
                 }
-                got = home_usb_poll(&message, &attached);
+                got = home_usb_poll(&message, &attached, &received_ms);
             }
+            now = home_now_ms();
             if (home_remote_poll(&remote, (uint32_t)now, &message)) home_usb_send(&message);
             if (user_seq && (!remote.attached || remote.session != user_session)) {
                 snprintf(notice, sizeof(notice), "Request timed out/disconnected; result UNKNOWN; not replayed");

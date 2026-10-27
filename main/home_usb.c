@@ -10,6 +10,11 @@
 #include "freertos/queue.h"
 #include "esp_log.h"
 
+typedef struct {
+    hl_message_t message;
+    uint32_t received_ms;
+} received_frame_t;
+
 static QueueHandle_t received;
 static cdc_acm_dev_hdl_t device;
 static hl_parser_t parser;
@@ -29,9 +34,9 @@ static bool rx(const uint8_t *data, size_t length, void *arg)
     (void)arg;
     uint32_t now = (uint32_t)(esp_timer_get_time() / 1000);
     for (size_t i = 0; i < length; ++i) {
-        hl_message_t message;
-        if (hl_parser_feed(&parser, (char)data[i], now, &message) &&
-            xQueueSend(received, &message, 0) != pdTRUE) fail_link();
+        received_frame_t frame = {.received_ms = now};
+        if (hl_parser_feed(&parser, (char)data[i], now, &frame.message) &&
+            xQueueSend(received, &frame, 0) != pdTRUE) fail_link();
     }
     return true;
 }
@@ -45,7 +50,7 @@ static void event(const cdc_acm_host_dev_event_data_t *data, void *arg)
 
 esp_err_t home_usb_start(void)
 {
-    received = xQueueCreate(16, sizeof(hl_message_t));
+    received = xQueueCreate(16, sizeof(received_frame_t));
     if (!received) return ESP_ERR_NO_MEM;
     // Native S31 USB Host via BSP, without GPIO19/20 remapping.
     esp_err_t err = bsp_usb_host_start(BSP_USB_HOST_POWER_MODE_USB_DEV, true);
@@ -58,7 +63,7 @@ esp_err_t home_usb_start(void)
     return err;
 }
 
-bool home_usb_poll(hl_message_t *message, bool *attached)
+bool home_usb_poll(hl_message_t *message, bool *attached, uint32_t *received_ms)
 {
     uint32_t now = (uint32_t)(esp_timer_get_time() / 1000);
     portENTER_CRITICAL(&guard);
@@ -92,7 +97,11 @@ bool home_usb_poll(hl_message_t *message, bool *attached)
         next_open = now + 1000;
     }
     *attached = device != NULL && !failed;
-    return *attached && xQueueReceive(received, message, 0) == pdTRUE;
+    received_frame_t frame;
+    if (!*attached || xQueueReceive(received, &frame, 0) != pdTRUE) return false;
+    *message = frame.message;
+    *received_ms = frame.received_ms;
+    return true;
 }
 
 bool home_usb_send(const hl_message_t *message)
@@ -107,7 +116,7 @@ bool home_usb_send(const hl_message_t *message)
 }
 #else
 esp_err_t home_usb_start(void) { return ESP_OK; }
-bool home_usb_poll(hl_message_t *m, bool *attached)
-{ (void)m; *attached = false; return false; }
+bool home_usb_poll(hl_message_t *m, bool *attached, uint32_t *received_ms)
+{ (void)m; (void)received_ms; *attached = false; return false; }
 bool home_usb_send(const hl_message_t *m) { (void)m; return false; }
 #endif

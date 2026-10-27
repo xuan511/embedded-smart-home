@@ -61,6 +61,7 @@ jobs:
           PROFILE: ${{ matrix.profile }}
         run: |
           source "$RUNNER_TEMP/esp-idf/export.sh"
+          python tools/check_environment.py
           if [ "$PROFILE" = default ]; then
             idf.py --preview set-target esp32s31
           else

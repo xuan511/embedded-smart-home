@@ -1,5 +1,7 @@
 # 软件设计 / Software design
 
+USB 接收队列保存回调的真实接收时间。服务处理延迟不会重置样本/链路年龄；排队已满 3 秒的帧丢弃，超过 1.5 秒请求期限才处理的 ACK 不完成旧请求。界面读取快照时再次计算年龄，避免慢 SD/NVS 操作让旧数据重新显示为正常。官方支持范围及证据等级见 [SUPPORT_EVIDENCE](SUPPORT_EVIDENCE.md)。
+
 本工程只有一个真实控制器：**STM32**。Korvo 负责操作请求、显示与参数持久化；它不会根据收到的读数再次执行自动规则，也不会直接驱动外接负载。明确选择的模拟构建独立使用纯 C 控制器，页面始终标记 SIMULATION。
 
 **STM32 is the sole real controller.** Korvo submits requests, displays returned state and persists thresholds. It does not independently recalculate real outputs. An explicitly selected simulation build uses the portable controller locally and remains labelled SIMULATION.
