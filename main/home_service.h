@@ -16,13 +16,17 @@ typedef struct {
 } home_request_t;
 
 typedef struct {
-    home_state_t state;
+    home_state_t state; // reported STM32 state, desired thresholds
     uint64_t uptime_ms;
     uint32_t rejected_requests;
-    bool simulated, led_ok, expander_ok, sd_ok;
+    uint32_t sample_age_ms;
+    uint32_t link_age_ms;
+    bool simulated, sd_ok, online, synced, stale, pending, outputs_known;
+    int source, stage;
+    char request_status[96];
 } home_snapshot_t;
 
 esp_err_t home_service_start(void);
-bool home_submit(const home_request_t *request); // bounded, zero-wait queue
+bool home_submit(const home_request_t *request);
 void home_snapshot(home_snapshot_t *snapshot);
 esp_err_t home_console_start(void);

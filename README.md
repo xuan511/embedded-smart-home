@@ -2,190 +2,166 @@
 
 [English](README.en.md) | 中文
 
-基于 **ESP32-S31-Korvo-1 V1.1** 的智能家居环境监测与控制毕设起步工程。题目对应《智能家居环境监测与控制系统的设计与实现》，优先完成采集、显示、控制、阈值联动和软硬件联调，再逐步增加联网与语音。
+《智能家居环境监测与控制系统的设计与实现》双板工程。目标是完成一次真实的 **采集 → LCD 显示 → 触摸/串口操作 → 执行 → 状态返回** 演示，优先保持接线和代码简单。
 
-**这是 ESP32-S31（`esp32s31`），不是 ESP32-S3（`esp32s3`）。不要选错编译目标。**
+| 开发板 | 分工 |
+| --- | --- |
+| ESP32-S31-Korvo-1 V1.1 | 原配 LCD/触摸、调试串口、NVS 阈值保存、可选 microSD 日志 |
+| STM32F103C8T6 学习板 | SHT3x 温湿度、BH1750 光照、灯/低压直流风扇开关、自动规则 |
+| 两板连接 | Korvo **USB-A Host → 指定 CP2102N USB 转串口模块 → STM32 USART1**，115200/8N1 |
 
-首版默认用明确标注的模拟温湿度/光照数据，直接使用板载 RGB 灯、按键与 LCD/触摸交互。无需先购买环境传感器，就能练习完整控制流程。板载没有室内温湿度/光照传感器，也没有风扇；芯片内部温度不能当作室温。
+ESP 目标必须为 **`esp32s31`**，不套用 `esp32s3` 的引脚和配置。STM32 按官方 **64 KB Flash / 20 KB SRAM** 设计。本方案不使用学习板上尚未确认的 USB 接口；不从 Korvo 的 LCD、SD 或其他 GPIO 引出传感器，不改主板。
 
-## 已提供的示例
+**当前没有连接实物板，所有真机联调均未进行。** 代码完成、编译通过、主机测试通过、真机验证通过分别记录于 [VALIDATION](docs/VALIDATION.md)。编译或测试数据不等于实测。前一步在板上验收通过，再增加下一步外设。
 
-| 资源 | 本工程行为 | 前提与边界 |
-| --- | --- | --- |
-| RGB LED / WS2812 | 跟随灯光开关，作为第一路真实执行输出 | 官方 BSP 管理 GPIO37；默认颜色由 BSP 决定 |
-| 四个 ADC 按键 | SET→自动；PLAY→灯光切换；VOL+→风扇命令切换；VOL−→手动 | BSP 的 `MODE` 对应板上 PLAY；按键短按 |
-| 4.3 英寸 LCD + GT1151 触摸 | 环境数据、模式、阈值、命令状态与自检按钮 | 需要原配 SUB3 屏幕；可关闭 UI 用串口运行 |
-| ES8389 + 扬声器 | 16 kHz 双声道、1 秒低音量测试音 | 自备连接扬声器；按需执行，无开机响铃 |
-| 双麦克风 | 采集 1 秒并输出左右通道峰值 | 原始幅度，不是校准分贝，也没有语音识别 |
-| microSD | 可选，每 10 秒追加 `home.csv` | 默认关闭；已格式化 FAT 卡；失败不自动格式化 |
-| DVP / OV3660 摄像头 | 可选，初始化传感器并查询设备能力、分辨率与格式 | 默认关闭；这是探测示例，尚无取帧、预览或录像 |
-| Wi-Fi | 按需扫描附近 AP 并输出前 8 条 | 不连接网络；扫描结束关闭 Wi-Fi；没有 Web/MQTT |
-| PSRAM | 64 KiB 写入/读回自检和容量报告 | 小范围功能检查，不能替代完整内存测试 |
-| I2C | 扫描板上/外接设备，复用 BSP 总线 | 不复制 LCD、音频的引脚初始化 |
-| 外接 SHT3x + BH1750 | 可选真实温湿度、光照采集 | 默认关闭；包含 CRC、量纲换算、有效性检查 |
-| 外接 MCP23017 | 可选 GPA0 灯 / GPA1 风扇输出 | 默认关闭；需要额外驱动级与负载供电；无转速反馈 |
+## 接线前先看
 
-USB Host、蓝牙、语音识别和相机视频留作后续扩展；本版不声称已实现。没有 MCP23017 时，风扇只有软件命令，屏幕和串口会显示外部输出不可用。`ON` 表示控制命令，不代表风扇已经转动。
+[硬件清单、实际接口、供电与接线表](docs/HARDWARE.md)是接线依据；[硬件核查](docs/HARDWARE_AUDIT.md)区分官方事实和待确认项。仅需集中确认这些影响接线/烧录的信息：
 
-## 运行环境
+1. STM32 学习板正反面/原理图：3V3、GND、PA9/PA10、PB6/PB7、PB0/PB1、SWD 是否有可插接排针；板载 LED 的 GPIO 和有效电平。不能仅凭“蓝色板”判断。
+2. 转串口模块的**芯片型号、USB VID/PID、UART 电平和排针定义**。本版只实现 CP2102N 路径，不把 CH340、FT232 等当成同一驱动；“3.3V 电源输出”不等于 TXD 一定是 3.3V。
+3. STM32 的供电入口与稳压电路，以及灯/风扇额定电压、电流、驱动模块的 3.3V 输入能力。先确认再上电，不同时接入可能互相回灌的电源。
 
-- 开发板：ESP32-S31-Korvo-1 V1.1，原配 ESP32-S3-LCD-EV-Board-SUB3（800×480）。
-- 主机：Windows 10/11、Linux 或 macOS。Windows 推荐 ESP-IDF 官方命令行/VS Code 扩展；串口波特率 115200。
-- SDK：**支持 `esp32s31` 的 ESP-IDF master 预览版本**。官方状态页目前仍要求 master；不要因为 BSP 的低版本下限就安装旧版 IDF。
-- 本工程 SDK 基线：`d35ea023029363d97c42565f85e0db23486f26b2`，ESP-IDF 6.2-dev。详细验证结果见 [验证记录](docs/VALIDATION.md)。
-- 依赖：官方 `espressif/esp32_s31_korvo_1` **1.0.1**、LVGL 9；由 IDF Component Manager 下载。生成的 `dependencies.lock` 固定解析结果。
-- 工具链、Python、CMake、Ninja 由 ESP-IDF 安装流程管理。不需要 Arduino、PlatformIO、Linux 内核或 API Key。
+Korvo 原配 LCD/触摸保持连接，可插入 FAT microSD。模块 TXD 接 PA10/RX，RXD 接 PA9/TX，GND 共地；模块 VCC 默认不接 STM32。STM32 使用已确认的独立合适电源。灯和风扇均经驱动级，禁止 GPIO 直接供电。完整信号表见硬件文档。
 
-### 安装 SDK（Linux / macOS）
+## Windows 安装环境
 
-先按[官方入门指南](https://docs.espressif.com/projects/esp-idf/en/latest/esp32s31/get-started/index.html)安装系统依赖，再运行：
+建议将 SDK 和工程放在没有空格的短路径，例如 `C:\esp\esp-idf` 和 `C:\esp\embedded-smart-home`。安装 [Git for Windows](https://git-scm.com/download/win)、Python 3.11/3.12，以及 [ESP-IDF 官方工具和前置环境](https://docs.espressif.com/projects/esp-idf/en/latest/esp32s31/get-started/windows-setup.html)。若使用 EIM，在 Manage Installations 中打开对应的 IDF Terminal。
 
-```bash
-git clone https://github.com/espressif/esp-idf.git
-cd esp-idf
-git checkout d35ea023029363d97c42565f85e0db23486f26b2
-git submodule update --init --recursive
-./install.sh esp32s31
-. ./export.sh
-```
-
-Windows 使用支持该目标的官方 ESP-IDF 安装方式；如已有源码目录，在 PowerShell 中检出上述提交，更新子模块后执行 `install.ps1 esp32s31` 和 `export.ps1`。如果安装器提供的 SDK 列表没有 S31，使用源码安装，不要改成 S3 目标凑合编译。每个新终端都需要激活相应 SDK。
-
-### 获取、配置、编译
-
-在已激活的 ESP-IDF 终端中：
-
-```bash
-git clone https://github.com/xuan511/embedded-smart-home.git
-cd embedded-smart-home
-python tools/check_environment.py
-idf.py --preview set-target esp32s31
-idf.py --preview menuconfig
-idf.py --preview build
-```
-
-首次可直接使用默认配置。`menuconfig → Smart Home` 中可以开关 LCD、真实传感器、SD 日志、相机探测和 MCP23017 输出。使用 `sdkconfig.defaults` 作为初始配置；修改它不会自动覆盖已经生成的 `sdkconfig`。重新应用默认配置前先备份个人配置，再运行 `idf.py --preview fullclean` 并移走 `sdkconfig`。
-
-### 接线与烧录
-
-1. 断电连接 LCD 和可选扬声器/SD 卡。先用裸板示例，不接外部负载。
-2. 将有数据线的 USB 线接到 **UART Type-C**，打开电源开关。另一个 **Power Type-C 仅供电**，不能烧录；Type-A 是 USB Host。
-3. 驱动扬声器等较大负载时，按官方指南另接独立电源线；不要让电机从 MCU GPIO 取电。
-4. 查询串口号，执行下列命令，将 `COM5` 换成实际端口：
+本工程继续固定原仓库的 SDK 基线，没有为了新增功能升级 SDK。在 PowerShell 中：
 
 ```powershell
+New-Item -ItemType Directory -Force C:\esp
+Set-Location C:\esp
+git -c core.longpaths=true clone https://github.com/espressif/esp-idf.git
+Set-Location esp-idf
+git -c core.longpaths=true checkout d35ea023029363d97c42565f85e0db23486f26b2
+git -c core.longpaths=true submodule update --init --recursive
+.\install.ps1 esp32s31
+. .\export.ps1
+```
+
+若脚本被阻止，可只为当前终端执行 `Set-ExecutionPolicy -Scope Process Bypass`，再安装/激活。每个新终端都需激活这一份 SDK。首次构建需访问 GitHub 和 Espressif Component Registry。依赖由 `main/idf_component.yml`、`dependencies.lock` 获取，包括官方 **BSP 1.0.1**、LVGL 9 和 USB Host 驱动；不要换成另一款 Korvo BSP。
+
+若提示 `Filename longer than 260 characters`，先把 SDK、工具目录和工程移到上述短路径后重新构建。本轮本地深目录的可选配置使用了 [Ninja 1.13.2 官方发行版](https://github.com/ninja-build/ninja/releases/tag/v1.13.2)处理长路径；ESP-IDF/BSP 版本保持不变。
+
+STM32 只采用 **Arm GNU Toolchain + CMake + Ninja**。安装 [Arm 官方工具链](https://developer.arm.com/downloads/-/arm-gnu-toolchain-downloads)，选择 Windows 的 `arm-none-eabi`，把其 `bin` 加入 PATH；CMake/Ninja 可复用 ESP-IDF 终端中的版本。烧录安装 [STM32CubeProgrammer](https://www.st.com/en/development-tools/stm32cubeprog.html)，使用 ST-Link。无需 Keil、Arduino、PlatformIO、FreeRTOS；STM32 源码无外部 SDK 下载依赖。
+
+```powershell
+arm-none-eabi-gcc --version
+cmake --version
+ninja --version
+git clone https://github.com/xuan511/embedded-smart-home.git C:\esp\embedded-smart-home
+Set-Location C:\esp\embedded-smart-home
+```
+
+## 分别构建与烧录
+
+### Korvo：默认 USB 实机模式
+
+在激活 SDK 的工程根目录执行：
+
+```powershell
+python tools/check_environment.py
+idf.py --preview set-target esp32s31
+idf.py --preview build
 idf.py --preview -p COM5 flash monitor
 ```
 
-Linux 常见端口示例：
+将 `COM5` 换成设备管理器中 **Korvo UART Type-C** 对应端口。Power Type-C 仅供电，USB-A 为 Host；三个接口用途不同。自动下载失败时，按住 BOOT，按下并松开 RESET，再松开 BOOT 后重试。`Ctrl+]` 退出 monitor。
 
-```bash
-idf.py --preview -p /dev/ttyUSB0 flash monitor
+默认未连接 STM32 时显示断开/等待，**不会生成模拟环境数据**。`idf.py --preview menuconfig → Smart Home` 可显式选择模拟模式（`CONFIG_HOME_SIMULATION`，默认关闭）、SD 日志和 LCD 开关。`configs/simulation.defaults` 提供显式模拟配置。修改默认配置不会覆盖已有 `sdkconfig`，更改后需重新构建/烧录。日志失败不格式化 SD 卡，不阻止核心控制。
+
+### STM32：先只构建阶段 1
+
+在工程根目录执行；工具链文件由 CMake 自动加载：
+
+```powershell
+cmake -S stm32 -B stm32/build-stage1 -G Ninja -DSTAGE=1
+cmake --build stm32/build-stage1
 ```
 
-若无法自动进入下载模式，按住 BOOT，按下并松开 RESET，再松开 BOOT 后重试。串口监视器用 `Ctrl+]` 退出。固件会显示 `SIMULATED SENSORS`，并在串口提供 `home>` 提示符。
+产物为 `home_stm32.elf`、`.bin`、`.hex`、`.map`。工程包含启动文件、向量表、64KB/20KB 链接脚本及配置，使用内部 HSI 8 MHz，不依赖学习板外部晶振。
 
-## 第一次演示：五分钟验证闭环
+断电连接 ST-Link：**SWDIO→PA13、SWCLK→PA14、GND→GND、VTref→目标 3V3**；NRST 按实际板接入。VTref 是目标电压参考，不能假定它给目标供电。按硬件文档单独供电，BOOT0 保持 0；STM32 板上 USB 本方案不用。
 
-输入命令后稍等约 1 秒，再读状态；命令先入队，`Queued` 只表示已接收。
+打开 STM32CubeProgrammer，选择 **ST-LINK / SWD**，先 Connect 读取芯片，再选 `stm32/build-stage1/home_stm32.elf`，执行 Download、Verify、Reset。若 CLI 已加到 PATH：
+
+```powershell
+STM32_Programmer_CLI -c port=SWD -w stm32/build-stage1/home_stm32.elf -v -rst
+```
+
+连接失败先查供电、共地、SWD、BOOT0 和芯片型号；必要时接 NRST 并选择 Under Reset。不要把板上有 USB 插座当成能下载的依据。
+
+## 按顺序完成五步实机验收
+
+更换 STM32 阶段时使用独立构建目录，重新编译/烧录。Korvo 保持 USB 实机固件。每步只接相应硬件，预期和空白记录表见 [ACCEPTANCE](docs/ACCEPTANCE.md)。
+
+| 步骤 | STM32 配置 | 操作与预期 |
+| --- | --- | --- |
+| ① 通信最小闭环 | `-DSTAGE=1` | 仅 USB-UART/供电；握手、配置应答、心跳；无环境读数；拔线显示断开，重插重新同步 |
+| ② 测试数据 + LED | `-DSTAGE=2` | 明确标记 TEST DATA：30°C、55%、50 lux；`home light on/off` 改变板载 LED 并收到状态应答；风扇请求拒绝 |
+| ③ 真实传感器 | `-DSTAGE=3` | SHT3x/BH1750 约每秒更新，STM32 SENSORS 标签；遮光/温度变化有趋势；单传感器断开显示故障；仅 LED 演示，风扇请求拒绝 |
+| ④ 实际灯/风扇 | `-DSTAGE=4` | 接驱动和独立低压负载电源；先手动开关，再自动阈值/滞回；记录真实动作 |
+| ⑤ 保存/异常 | 阶段 4 | 保存阈值、重启/重连、失联策略、数据过期、传感器故障、连续运行 |
+
+例如第二阶段：
+
+```powershell
+cmake -S stm32 -B stm32/build-stage2 -G Ninja -DSTAGE=2
+cmake --build stm32/build-stage2
+STM32_Programmer_CLI -c port=SWD -w stm32/build-stage2/home_stm32.elf -v -rst
+```
+
+默认 LED 为 **PC13 低电平亮**，须先核对实际板。可用 `-DLED_PORT=C -DLED_PIN=13 -DLED_ACTIVE_LOW=1` 配置，端口支持 A/B/C。前两步没有真实采集；全部实机现象必须现场补记，不能预填 PASS。
+
+## 操作、阈值与状态
+
+触摸、实体按键和串口共用有界请求队列。LCD 主页显示读数、模式、灯/风扇返回状态和必要按钮；阈值用 Korvo 调试串口修改：
 
 ```text
 home help
 home status
 home light on
 home light off
+home fan on
+home fan off
 home mode auto
-home sim 30 55 50
-home status
-home sim 27 55 150
-home status
-home sim 25 50 300
-home status
-home fault
-home status
-home sim 25 50 300
+home mode manual
+home thresholds 29 27 80 180
+home save
 ```
 
-预期结果：
+每条操作后等约 1 秒，再用 `home status` 看返回；`pending=1` 时继续等待，busy 拒绝则稍后重试。`thresholds` 依次为风扇开启/关闭温度（°C）、灯开启/关闭照度（lux）。要求风扇关闭阈值小于开启阈值、灯开启阈值小于关闭阈值；默认 28/26°C、100/200 lux。温度阈值保留 2 位小数，照度保留 1 位，舍入后滞回不能消失。湿度仅显示。`save` 存到 Korvo NVS，STM32 只持运行时副本；保存失败按日志处理。
 
-- `light on/off` 能切换板载 RGB 灯，同时进入手动模式。
-- 自动模式下，`30°C / 50 lux` → 风扇命令 ON、灯 ON。
-- `27°C / 150 lux` 位于滞回区 → 保持先前开关状态，不反复抖动。
-- `25°C / 300 lux` → 两个命令均 OFF。
-- `fault` 注入传感器失效，自动模式下两路输出关闭，显示 FAULT；下一条 `sim` 恢复数据。
-- 手动模式下，模拟故障仍显示故障，但不会替你改变手动命令；这只是桌面演示策略。
+- 手动负载命令切换到 MANUAL；所有 AUTO 规则由 STM32 执行。
+- 高温开风扇、低照度开灯，滞回区保持状态。对应数据无效/过期时，AUTO 下对应演示负载关闭。
+- 上电/重连：新会话 HELLO → READY → Korvo 下发有效阈值 → 成功应答后允许控制。STM32 旧阈值不回写 NVS，旧手动请求不重放。
+- USB 拔出或约 3 秒无有效消息：Korvo 标记失联/过期，旧数字不能显示为正常。STM32 MANUAL 最迟约 5 秒失联后关闭两路负载，新会话重握手时可能提前关闭；AUTO 继续按本地有效数据运行。
+- 请求约 1.5 秒无应答时结果为未知，并重建会话同步；不会把未确认请求显示为已执行。
+- **请求排队、STM32 返回的 GPIO 输出状态、真实负载动作是三件事。** 无转速/电流采集时，ON 不证明风扇已经转动；实际动作单独验收。
 
-### 命令表
+无硬件时可在 menuconfig 显式选择模拟模式，页面标记 OFFLINE SIMULATION。`home sim 30 55 50`、`home fault` 仅模拟构建可用；USB 实机断开不会回退到模拟。
 
-| 命令 | 用法 |
-| --- | --- |
-| `home status` | 数据、模式、阈值、故障、输出可用性、队列拒绝次数 |
-| `home mode auto` / `home mode manual` | 自动/手动模式；切回自动立即按规则计算 |
-| `home light on/off` / `home fan on/off` | 手动控制；会将整个控制器切到手动模式 |
-| `home thresholds 29 27 80 180` | 风扇开/关温度，灯光开/关照度；修改后先保存在 RAM |
-| `home save` | 将当前阈值保存到 NVS；模式和开关状态不保存，重启回到自动模式 |
-| `home sim 30 55 50` | 注入温度、湿度、照度；仅模拟构建可用，数值持续直到再次修改 |
-| `home fault` | 模拟传感器故障；仅模拟构建可用 |
-| `home test i2c` | 扫描 7 位地址并打印 ACK |
-| `home test memory` | PSRAM 小范围读写检查 |
-| `home test tone` / `home test mic` | 扬声器测试音 / 双麦克风峰值 |
-| `home test camera` | 相机传感器/格式探测；先启用 `HOME_CAMERA` |
-| `home test wifi` | 扫描附近 Wi-Fi AP，无需 Wi-Fi 密码 |
+## 测试、源码与排错
 
-UI 与实体按键走相同消息队列，不直接在回调里做音频/SD/网络操作。自检由独立低优先级任务串行执行；队列满会报告失败，不会无限排队。
+有 Python 和主机 C 编译器时：
 
-## 从模拟接入真实硬件
-
-先读 [硬件与外设说明](docs/HARDWARE.md)。默认不指定“空闲 GPIO”，因为 LCD、相机、音频和 SD 已占用大量引脚。
-
-1. 在实际原理图上确认可访问的 **GPIO0/SDA、GPIO1/SCL、3.3V、GND**，再并接 3.3V 的 SHT3x-DIS 和 BH1750 模块。不要把模组引脚编号当成 GPIO 编号，也不要假设有杜邦排针。
-2. 运行 `home test i2c` 确认地址。SHT 默认 `0x44`（可选 `0x45`）；BH1750 默认 `0x23`（可选 `0x5C`）。
-3. 在 `menuconfig → Smart Home` 打开真实传感器开关，并填写地址；重新编译、烧录。屏幕应改成 `EXTERNAL SENSORS`、串口改成 `REAL`。
-4. 拔掉其中一路传感器，验证对应故障与输出关闭；另一条规则继续运行。真实构建拒绝 `home sim`，不会自动拿模拟值补偿掉线。
-5. 需要真实风扇时，再接可选 MCP23017 和 MOSFET/续流二极管/独立电源。只对低压直流灯和小风扇做桌面演示，详见接线文档。
-
-## 代码结构与阅读顺序
-
-| 路径 | 职责 |
-| --- | --- |
-| `docs/ARCHITECTURE.md` | 任务、数据流、规则与扩展接口 |
-| `main/app_main.c` | 启动 NVS、控制服务、自检、UI、串口 |
-| `components/home_core/` | 与硬件无关的 C 状态、阈值、滞回、数据有效性、SHT CRC |
-| `main/home_service.c` | 控制任务、消息队列、快照、NVS、CSV、串口命令 |
-| `main/board_io.c` | RGB、ADC 按键、可选 MCP23017 |
-| `main/sensors.c` | 可选 SHT3x / BH1750 真实采集 |
-| `main/ui.c` | LVGL 9 仪表盘与触摸操作 |
-| `main/diagnostics.c` | I2C、PSRAM、音频、相机探测、Wi-Fi 自检 |
-| `tests/`、`tools/` | 纯 C 控制逻辑测试与环境检查 |
-
-建议从 `home_core.h → home_core.c → tests/test_core.c → app_main.c → home_service.c` 开始。每加一个传感器，优先让串口显示可信数据，再连入自动控制，最后增加界面；不必一次看完全部驱动。
-
-## 测试与后续开发
-
-无开发板也可以在有 C 编译器与 Python 3 的电脑上执行：
-
-```bash
+```powershell
 python tools/test_host.py
 ```
 
-覆盖启动关闭、滞回边界、独立故障、5 秒数据超时、手动/自动切换、非法数值和 SHT CRC。它不证明硬件已经工作。固件编译、上板验收和稳定性记录分别列在 [验证记录](docs/VALIDATION.md) 与 [分阶段开发计划](docs/ROADMAP.md)。
+主机测试覆盖控制逻辑、协议边界及端点状态处理，不能替代硬件测试。[协议](docs/PROTOCOL.md)规定帧边界、字段和重连；[架构](docs/ARCHITECTURE.md)说明状态归属；[验收](docs/ACCEPTANCE.md)提供上板记录模板；[ROADMAP](docs/ROADMAP.md)只包含本轮范围。
 
-后续顺序：**板载演示 → 真实环境传感器 → 真实低压灯/风扇 → 阈值与异常联调 → 连续运行测试 → 可选 Web/MQTT/语音**。暂不引入自研 PCB、OTA、云平台或 AI 依赖。
+| 路径 | 职责 |
+| --- | --- |
+| `main/` | Korvo 服务、USB Host、LVGL、NVS、串口、可选 SD/诊断 |
+| `components/home_core/` | 纯 C 有效性、滞回、SHT CRC |
+| `components/home_link/` | 两端共用的 ASCII 行协议 |
+| `components/home_remote/` | Korvo 纯 C 会话、同步、请求与过期处理 |
+| `stm32/` | 主循环、实际 UART/I2C/GPIO、启动/链接/构建 |
+| `tests/`、`tools/` | 主机测试、环境检查 |
 
-常见问题：
+目标找不到时激活正确 SDK；组件下载失败先查网络/证书。USB 未枚举先核对模块芯片/VID/PID；枚举但无握手再查 UART TX/RX 交叉、3.3V 电平、STM32 阶段。LED 无反应先查 GPIO/极性。LCD 黑屏检查原配屏、FPC 方向和供电。排错先断开负载，回到最小通信链路。
 
-- **找不到 `esp32s31`**：当前激活的 SDK 太旧或路径不对；检查 `python tools/check_environment.py`，不能改选 S3。
-- **组件下载失败**：首次构建需要访问 Espressif Component Registry 与 GitHub，检查代理/证书。不要随意删除版本约束。
-- **LCD 黑屏/复位**：确认原配屏、连接方向、供电与 PSRAM 配置；在 menuconfig 关闭 UI，先用串口缩小问题范围。
-- **按键不匹配**：本工程按 BSP V1.1 映射；通过串口观察并核对硬件版本，不复制其他 Korvo 板的 ADC 阈值。
-- **显示 ON 但风扇不转**：默认没有外部执行电路；查看 `MCP=0`。本工程目前没有转速或电流反馈。
-- **SD 不记录**：默认关闭；启用后需 FAT 卡，文件名 `home.csv`。失败后本次运行停止记录，排查后重启；不会自动格式化。
-
-## 官方资料与许可
-
-- [Korvo-1 V1.1 用户指南与原理图入口](https://docs.espressif.com/projects/esp-dev-kits/en/latest/esp32s31/esp32-s31-korvo-1/user_guide.html)
-- [ESP32-S31 软件支持状态](https://developer.espressif.com/hardware/esp32s31/)
-- [官方 BSP 1.0.1](https://components.espressif.com/components/espressif/esp32_s31_korvo_1/versions/1.0.1)
-- [乐鑫 BSP 源码与示例](https://github.com/espressif/esp-bsp/tree/master/bsp/esp32_s31_korvo_1)
-
-项目自身代码采用 [MIT](LICENSE)。外部组件保留各自许可，未将官方 BSP 源码复制进仓库。
+项目代码采用 [MIT](LICENSE)，外部依赖保留各自许可。官方资料见 [硬件文档](docs/HARDWARE.md)。本轮不增加 AI、语音、云平台、App、MQTT、Matter、OTA、自研 PCB 或相机视频；已有自检仅作可选串口工具。

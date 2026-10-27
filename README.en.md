@@ -2,188 +2,166 @@
 
 English | [中文](README.md)
 
-An initial graduation-project implementation for **ESP32-S31-Korvo-1 V1.1**, targeting environmental monitoring, manual control, threshold-based automation and hardware/software integration. Start with a demonstrable local system; add networking and voice later.
+A two-board graduation project for **Design and Implementation of a Smart Home Environmental Monitoring and Control System**. The goal is a real demonstration: **measure → display → operate → actuate → return status**, with simple wiring and understandable code.
 
-**Select `esp32s31`, NOT `esp32s3`. These are different chips.**
+| Board | Responsibility |
+| --- | --- |
+| ESP32-S31-Korvo-1 V1.1 | Original LCD/touch, debug console, NVS thresholds, optional microSD log |
+| STM32F103C8T6 learning board | SHT3x temperature/humidity, BH1750 light, lamp/fan drivers, local automation |
+| Link | Korvo **USB-A Host → specified CP2102N USB-UART module → STM32 USART1**, 115200/8N1 |
 
-By default, clearly labelled simulated temperature, humidity and light readings drive the real onboard RGB LED and the shared button/touch controls. No environmental sensors are required for this first demonstration. The board has no onboard room-temperature/humidity/light sensor or fan. Internal chip temperature is not room temperature.
+Select **`esp32s31`**. Do not substitute `esp32s3` configuration or pins. The STM32 linker uses the official **64 KB Flash / 20 KB SRAM** limits. This design does not depend on the unidentified STM32 board's USB circuit. LCD, touch and microSD stay connected; no Korvo GPIO extraction or main-board modification is required.
 
-## Peripheral examples
+**No physical boards are connected in this development session. Hardware verification has not been performed.** [VALIDATION](docs/VALIDATION.md) records code completion, successful builds, host tests and hardware results separately. A successful build or test-data display is not a physical measurement. Pass each hardware acceptance stage before connecting the next devices.
 
-| Resource | Implemented example | Requirements / limits |
-| --- | --- | --- |
-| WS2812 RGB LED | Follows the light command | GPIO37 owned by the official BSP; BSP default color |
-| Four ADC keys | SET: Auto; PLAY: toggle light; VOL+: toggle fan command; VOL−: Manual | Single click; BSP `MODE` corresponds to PLAY |
-| LCD + GT1151 touch | Dashboard, command buttons and diagnostic buttons | Original SUB3 800×480 panel; UI can be disabled |
-| ES8389 / speakers | 1-second low-volume stereo test tone, 16 kHz | Connect your speaker; runs only on request |
-| Dual microphones | Capture 1 second and report per-channel peaks | Raw amplitude, no calibrated dB or speech recognition |
-| microSD | Optional `home.csv` append every 10 seconds | Disabled by default; FAT card; never auto-formats |
-| DVP / OV3660 | Optional sensor initialization and capability/format probe | Disabled by default; no frame capture, preview or recording |
-| Wi-Fi | On-demand scan, print up to 8 APs, stop radio | No network connection, Web server or MQTT |
-| PSRAM | 64 KiB pattern write/read test and memory report | A small functional check, not exhaustive validation |
-| I2C | Scan shared BSP bus for responding devices | No duplicate bus initialization or guessed pins |
-| External SHT3x + BH1750 | Optional real environmental acquisition | Disabled by default; CRC, conversion and range validation |
-| External MCP23017 | Optional GPA0 light / GPA1 fan commands | Disabled by default; requires load drivers and separate power |
+## Before connecting hardware
 
-USB Host applications, Bluetooth, speech recognition and camera streaming are future extensions. Without an external output circuit, the fan exists only as a software command and is shown as unavailable. An ON command is not physical load feedback.
+Use the [parts, connectors, power and wiring tables](docs/HARDWARE.md) and [official-source audit](docs/HARDWARE_AUDIT.md). Only three groups of information remain essential for safe, correct wiring/flashing:
 
-## Environment
+1. The actual STM32 board schematic or clear identification: accessible 3V3/GND, PA9/PA10, PB6/PB7, PB0/PB1 and SWD headers; onboard LED pin and polarity.
+2. The module's **CP2102N identity, USB VID/PID, UART voltage and header labels**. This implementation does not use CH340 or FT232 drivers. A 3.3V supply pin does not itself prove 3.3V TXD logic.
+3. The STM32 board's power input/regulator, lamp/fan rated voltage/current, and whether the drivers guarantee operation with 3.3V control. Avoid simultaneous supplies that can backfeed one another.
 
-- Board: ESP32-S31-Korvo-1 V1.1 and original ESP32-S3-LCD-EV-Board-SUB3 display.
-- Host: Windows 10/11, Linux or macOS; use an ESP-IDF-enabled terminal or the official VS Code extension. Console: 115200 baud.
-- SDK: **ESP-IDF master preview with `esp32s31` support**. The official support page currently directs S31 developers to master. Older SDK releases are not sufficient just because the BSP declares a low minimum version.
-- SDK baseline: `d35ea023029363d97c42565f85e0db23486f26b2` (6.2-dev). See [validation](docs/VALIDATION.md) for actual checks.
-- Dependencies: official `espressif/esp32_s31_korvo_1` **1.0.1**, LVGL 9, resolved by IDF Component Manager. `dependencies.lock` records exact resolved versions.
-- Toolchain, Python, CMake and Ninja are managed by ESP-IDF. No Arduino, PlatformIO, Linux port or API key is needed.
+Keep the original LCD/touch connected. A FAT microSD is optional. Module TXD connects to STM32 PA10/RX; RXD to PA9/TX; GND is common. Leave module VCC disconnected from STM32 by default and use a confirmed independent board supply. Lamp/fan require driver stages and suitable load power; never supply a load from an MCU GPIO. Follow the complete hardware tables.
 
-### Install ESP-IDF
+## Windows setup
 
-Install host prerequisites from the [official S31 getting-started guide](https://docs.espressif.com/projects/esp-idf/en/latest/esp32s31/get-started/index.html), then on Linux/macOS:
+Use short paths without spaces, for example `C:\esp\esp-idf` and `C:\esp\embedded-smart-home`. Install [Git for Windows](https://git-scm.com/download/win), Python 3.11/3.12, and the prerequisites from the [official ESP-IDF Windows setup](https://docs.espressif.com/projects/esp-idf/en/latest/esp32s31/get-started/windows-setup.html). EIM users can open the matching IDF Terminal from Manage Installations.
 
-```bash
-git clone https://github.com/espressif/esp-idf.git
-cd esp-idf
-git checkout d35ea023029363d97c42565f85e0db23486f26b2
-git submodule update --init --recursive
-./install.sh esp32s31
-. ./export.sh
-```
-
-On Windows use the official ESP-IDF setup with S31 support. With a source checkout, select the same commit and update submodules, then run `install.ps1 esp32s31` and `export.ps1` in PowerShell. If the installer has no S31-capable release, use the source checkout rather than choosing the S3 target. Activate the SDK in each new terminal.
-
-### Configure and build
-
-```bash
-git clone https://github.com/xuan511/embedded-smart-home.git
-cd embedded-smart-home
-python tools/check_environment.py
-idf.py --preview set-target esp32s31
-idf.py --preview menuconfig
-idf.py --preview build
-```
-
-Defaults are sufficient for the first run. `Smart Home` in menuconfig controls the display, real sensors, SD logging, camera probe and external outputs. `sdkconfig.defaults` seeds new configurations; changing it does not override an existing `sdkconfig`. Back up personal settings before cleaning and moving an old `sdkconfig` to regenerate it.
-
-### Connect and flash
-
-1. Power off before attaching the LCD, optional speaker or card. Start without external loads.
-2. Connect a data-capable USB cable to **UART Type-C** and switch the board ON. **Power Type-C is power-only**; Type-A is USB Host.
-3. Follow the board guide for a separate power connection when using speakers or other larger loads. Never power a motor from a GPIO.
-4. Replace the example port with your actual port:
+The project retains the original repository's SDK baseline rather than upgrading for the new features. In PowerShell:
 
 ```powershell
+New-Item -ItemType Directory -Force C:\esp
+Set-Location C:\esp
+git -c core.longpaths=true clone https://github.com/espressif/esp-idf.git
+Set-Location esp-idf
+git -c core.longpaths=true checkout d35ea023029363d97c42565f85e0db23486f26b2
+git -c core.longpaths=true submodule update --init --recursive
+.\install.ps1 esp32s31
+. .\export.ps1
+```
+
+If script execution is blocked, `Set-ExecutionPolicy -Scope Process Bypass` applies only to the current shell. Activate this SDK in each new terminal. The first build needs access to GitHub and Espressif Component Registry. Component Manager resolves `main/idf_component.yml` and `dependencies.lock`, including official **BSP 1.0.1**, LVGL 9 and USB Host drivers. Do not replace the BSP with one for another Korvo board.
+
+For `Filename longer than 260 characters`, first use short paths for the SDK, tools and project. The optional configurations in this local deep directory use the [official Ninja 1.13.2 release](https://github.com/ninja-build/ninja/releases/tag/v1.13.2) for long paths; ESP-IDF and BSP remain pinned.
+
+STM32 uses only **Arm GNU Toolchain + CMake + Ninja**. Install the Windows `arm-none-eabi` package from [Arm](https://developer.arm.com/downloads/-/arm-gnu-toolchain-downloads) and add its `bin` directory to PATH. CMake/Ninja from the activated IDF environment can be reused. Install [STM32CubeProgrammer](https://www.st.com/en/development-tools/stm32cubeprog.html) and use ST-Link for flashing. No Keil, Arduino, PlatformIO or RTOS is required. STM32 source has no external SDK dependency.
+
+```powershell
+arm-none-eabi-gcc --version
+cmake --version
+ninja --version
+git clone https://github.com/xuan511/embedded-smart-home.git C:\esp\embedded-smart-home
+Set-Location C:\esp\embedded-smart-home
+```
+
+## Build and flash each board
+
+### Korvo: real USB link by default
+
+In the repository root, with the correct SDK activated:
+
+```powershell
+python tools/check_environment.py
+idf.py --preview set-target esp32s31
+idf.py --preview build
 idf.py --preview -p COM5 flash monitor
 ```
 
-Linux example:
+Replace `COM5` with the **Korvo UART Type-C** port in Device Manager. Power Type-C supplies power only; USB-A is Host. If automatic download fails, hold BOOT, press/release RESET, release BOOT, then retry. Exit monitor with `Ctrl+]`.
 
-```bash
-idf.py --preview -p /dev/ttyUSB0 flash monitor
+Without STM32, the default firmware displays disconnected/waiting and **does not invent measurements**. Use `idf.py --preview menuconfig → Smart Home` to explicitly select simulation (`CONFIG_HOME_SIMULATION`, disabled by default), optional SD logging or LCD. `configs/simulation.defaults` provides an explicit simulation profile. Defaults do not override an existing `sdkconfig`; rebuild and flash after changing settings. SD failures do not format the card or stop core control.
+
+### STM32: start with stage 1
+
+Run from the repository root; CMake loads the Arm toolchain file automatically:
+
+```powershell
+cmake -S stm32 -B stm32/build-stage1 -G Ninja -DSTAGE=1
+cmake --build stm32/build-stage1
 ```
 
-If automatic download fails, hold BOOT, press/release RESET, release BOOT and retry. Exit the monitor with `Ctrl+]`. Expect a `SIMULATED SENSORS` dashboard and a `home>` prompt.
+Outputs are `home_stm32.elf`, `.bin`, `.hex` and `.map`. The project includes startup, vectors and the 64KB/20KB linker script. It uses internal 8 MHz HSI and does not require the board's external crystal.
 
-## First demonstration
+Power off before wiring ST-Link: **SWDIO→PA13, SWCLK→PA14, GND→GND, VTref→target 3V3**; connect NRST if available. VTref is a voltage reference, not an assumed power output. Power the board through the confirmed supply arrangement; keep BOOT0 low. Do not use the STM32 USB socket in this design.
 
-Commands are queued; wait roughly one second before inspecting their results. A `Queued` message acknowledges receipt only.
+In STM32CubeProgrammer, select **ST-LINK / SWD**, Connect and read the chip, select `stm32/build-stage1/home_stm32.elf`, then Download, Verify and Reset. With the CLI on PATH:
+
+```powershell
+STM32_Programmer_CLI -c port=SWD -w stm32/build-stage1/home_stm32.elf -v -rst
+```
+
+For connection failure, check power, ground, SWD, BOOT0 and chip identity first. If needed, connect NRST and use Under Reset. A USB socket alone does not establish a working flashing path.
+
+## Five hardware acceptance steps
+
+Use a separate STM32 build directory for each stage, then flash it. Keep Korvo on real USB firmware. Connect only the hardware required by the current stage. Detailed actions and blank observation tables are in [ACCEPTANCE](docs/ACCEPTANCE.md).
+
+| Step | STM32 option | Expected behavior |
+| --- | --- | --- |
+| 1. Minimal link | `-DSTAGE=1` | Only USB-UART/power; handshake, configuration response and heartbeat; no readings; unplug reports disconnection, reconnect synchronizes again |
+| 2. Test data and LED | `-DSTAGE=2` | Explicit TEST DATA: 30°C, 55%, 50 lux; `home light on/off` changes onboard LED with a returned state; fan requests are rejected |
+| 3. Real sensors | `-DSTAGE=3` | SHT3x/BH1750 readings about once per second, STM32 SENSORS label; shade/warm sensors, test individual faults; only LED demonstration, fan requests rejected |
+| 4. Real loads | `-DSTAGE=4` | Add driver circuits and independent low-voltage load power; manual first, then automatic hysteresis; record physical actions |
+| 5. Persistence/faults | Stage 4 | Save/reboot/reconnect, communication loss, expiry, sensor faults and continuous running |
+
+For example, stage 2:
+
+```powershell
+cmake -S stm32 -B stm32/build-stage2 -G Ninja -DSTAGE=2
+cmake --build stm32/build-stage2
+STM32_Programmer_CLI -c port=SWD -w stm32/build-stage2/home_stm32.elf -v -rst
+```
+
+The default LED is **PC13, active low**. Confirm the actual board before using it. Configure with `-DLED_PORT=C -DLED_PIN=13 -DLED_ACTIVE_LOW=1` if appropriate; ports A/B/C are supported. Stages 1–2 perform no real environmental acquisition. Do not prefill hardware PASS results.
+
+## Operation, thresholds and state ownership
+
+Touch, keys and console share one bounded request queue. The home screen shows readings, mode, returned lamp/fan output states and essential buttons. Change thresholds through the Korvo console:
 
 ```text
 home help
 home status
 home light on
 home light off
+home fan on
+home fan off
 home mode auto
-home sim 30 55 50
-home status
-home sim 27 55 150
-home status
-home sim 25 50 300
-home status
-home fault
-home status
-home sim 25 50 300
+home mode manual
+home thresholds 29 27 80 180
+home save
 ```
 
-Expected results:
+Wait about one second after each operation before inspecting `home status`. If `pending=1`, wait for its response; retry a busy rejection later. Threshold arguments are fan ON/OFF °C, then lamp ON/OFF lux. Require fan OFF < ON and lamp ON < OFF. Defaults are 28/26°C and 100/200 lux. Temperature thresholds use two decimal places and lux one; hysteresis must survive rounding. Humidity is display-only. `save` persists thresholds in Korvo NVS; STM32 holds a runtime copy. Report persistence errors rather than assuming success.
 
-- Manual light commands toggle the real RGB LED and switch the entire controller to MANUAL.
-- In AUTO, 30°C / 50 lux turns both commands ON.
-- 27°C / 150 lux preserves previous outputs inside both hysteresis bands.
-- 25°C / 300 lux turns both commands OFF.
-- `fault` marks simulated channels invalid and turns their AUTO outputs OFF; a new `sim` restores valid samples.
-- MANUAL keeps the requested outputs even when sensor faults are displayed. This is a desktop demonstration policy.
+- A manual load request selects MANUAL. STM32 alone executes AUTO rules.
+- High temperature turns the fan on; low light turns the lamp on; hysteresis retains outputs between thresholds. An invalid/stale channel turns off its corresponding AUTO demonstration load.
+- Boot/reconnect: new HELLO session → READY → Korvo sends authoritative thresholds → successful response enables operations. STM32 never writes old thresholds back into Korvo NVS; old manual requests are not replayed.
+- A USB disconnect event or about three seconds without valid messages marks Korvo disconnected/stale. Old numbers do not retain an OK label. STM32 MANUAL shuts both loads off after about five seconds without link activity, or earlier on a fresh-session handshake; AUTO continues using valid local measurements.
+- A request without its response after about 1.5 seconds has an unknown result and starts a new synchronization session; it is never optimistically shown as executed.
+- **Queued request, returned GPIO output state and physical load action are separate evidence.** No current/tachometer feedback is fitted, so ON does not prove a spinning fan. Record physical action during acceptance.
 
-### Commands
+For work without hardware, explicitly select simulation in menuconfig. The screen must say OFFLINE SIMULATION. `home sim 30 55 50` and `home fault` are simulation-only; real USB disconnection never activates simulation.
 
-| Command | Behavior |
-| --- | --- |
-| `home status` | Readings, mode, thresholds, faults, output availability and rejected requests |
-| `home mode auto/manual` | Select mode; AUTO recalculates on the next controller iteration |
-| `home light on/off`, `home fan on/off` | Set manual output and switch the controller to MANUAL |
-| `home thresholds 29 27 80 180` | Fan on/off °C, light on/off lux; apply in RAM |
-| `home save` | Persist thresholds to NVS; mode/output states are not persisted |
-| `home sim 30 55 50` | Inject temperature, humidity and lux; simulated builds only; stays until changed |
-| `home fault` | Inject invalid simulated readings |
-| `home test i2c` | Scan shared I2C bus |
-| `home test memory` | PSRAM functional check |
-| `home test tone`, `home test mic` | Speaker tone / microphone peaks |
-| `home test camera` | Sensor/format probe; requires `HOME_CAMERA` |
-| `home test wifi` | Scan nearby APs; no Wi-Fi password needed |
+## Tests, source and troubleshooting
 
-Buttons and touch use the same bounded message queue. Diagnostics run serially in a separate lower-priority worker, keeping audio/network operations out of UI callbacks. Full queues report failure rather than growing indefinitely.
+With Python and a host C compiler:
 
-## Connect real sensors and loads
-
-Read [hardware notes](docs/HARDWARE.md) first. There is no assumed free GPIO header: the LCD, camera, SD and audio already use most routed pins.
-
-1. Verify access to **GPIO0/SDA, GPIO1/SCL, 3.3V and GND** against your actual board schematic. Share this bus with 3.3V SHT3x-DIS and BH1750 modules; do not confuse module pin numbers with GPIO numbers.
-2. Use `home test i2c`. SHT defaults to `0x44` (alternative `0x45`); BH1750 to `0x23` (alternative `0x5C`).
-3. Enable real sensors under `Smart Home`, configure addresses and rebuild/flash. The UI should say `EXTERNAL SENSORS`, and the console `REAL`.
-4. Disconnect one sensor and check its fault/output behavior. The other rule should continue. Real builds reject simulation commands and never silently replace failed readings with simulated values.
-5. For a physical fan, add the optional MCP23017, MOSFET driver, flyback protection and independent low-voltage DC power as described in the hardware notes.
-
-## Source layout
-
-| Path | Responsibility |
-| --- | --- |
-| `docs/ARCHITECTURE.md` | Tasks, data flow, rules and extension interfaces |
-| `main/app_main.c` | Startup sequence |
-| `components/home_core/` | Portable C state, hysteresis, validity, timeouts and SHT CRC |
-| `main/home_service.c` | Controller task, request queue, snapshot, NVS, CSV and console |
-| `main/board_io.c` | RGB, ADC keys and optional expander |
-| `main/sensors.c` | Optional real SHT3x / BH1750 acquisition |
-| `main/ui.c` | LVGL 9 dashboard |
-| `main/diagnostics.c` | On-demand peripheral diagnostics |
-| `tests/`, `tools/` | Host tests and environment checks |
-
-Suggested reading order: `home_core.h → home_core.c → tests/test_core.c → app_main.c → home_service.c`. For each new device, establish trustworthy serial data first, then automation, then UI.
-
-## Verification and development
-
-With Python 3 and a C compiler, without ESP-IDF or the board:
-
-```bash
+```powershell
 python tools/test_host.py
 ```
 
-Tests cover startup OFF, hysteresis boundaries, independent faults, 5-second expiry, modes, invalid numbers and SHT CRC/decoding. Host tests do not prove that physical hardware works. Build results, hardware acceptance and the next development stages are recorded separately in [validation](docs/VALIDATION.md) and [roadmap](docs/ROADMAP.md).
+Tests exercise control rules, framing and endpoint state handling; they do not prove hardware operation. See [protocol](docs/PROTOCOL.md), [architecture](docs/ARCHITECTURE.md), [acceptance](docs/ACCEPTANCE.md), [validation](docs/VALIDATION.md) and [roadmap](docs/ROADMAP.md).
 
-Recommended sequence: **onboard demonstration → real sensors → real low-voltage loads → threshold/fault integration → continuous-run testing → optional Web/MQTT/voice**. No custom PCB, OTA, cloud platform or AI dependency is required for this baseline.
+| Path | Responsibility |
+| --- | --- |
+| `main/` | Korvo service, USB Host, LCD, NVS, console, optional SD/diagnostics |
+| `components/home_core/` | Portable C validity, hysteresis and SHT CRC |
+| `components/home_link/` | Shared ASCII-line protocol |
+| `components/home_remote/` | Portable Korvo session, synchronization, request and expiry handling |
+| `stm32/` | Main loop, real UART/I2C/GPIO, startup/link/build files |
+| `tests/`, `tools/` | Host tests and environment checks |
 
-Troubleshooting:
+For an unknown target, activate the correct SDK. For download failures, inspect network/certificates. If USB does not enumerate, verify chip/VID/PID; if it enumerates but does not handshake, check UART crossing, 3.3V logic and STM32 stage. Verify LED pin/polarity before blaming communication. For LCD issues, check the original panel, FPC direction and power. Disconnect loads and return to the minimum link when troubleshooting.
 
-- **Unknown target**: activate the correct SDK and run `python tools/check_environment.py`; do not substitute `esp32s3`.
-- **Dependency download fails**: check access/proxy/certificates for Espressif Component Registry and GitHub before changing constraints.
-- **Black screen/resets**: check original panel, connector orientation, power and PSRAM settings; disable UI to isolate with the console.
-- **Unexpected key mapping**: verify V1.1 hardware and BSP mapping; do not copy ADC thresholds from another Korvo board.
-- **Fan ON but stationary**: the default build has no external driver; check MCP availability. There is no speed/current feedback.
-- **No SD logging**: enable the option and insert a FAT card. Write failures stop logging until reboot; the firmware does not format cards.
-
-## References and license
-
-- [Official board guide / schematic links](https://docs.espressif.com/projects/esp-dev-kits/en/latest/esp32s31/esp32-s31-korvo-1/user_guide.html)
-- [ESP32-S31 software support status](https://developer.espressif.com/hardware/esp32s31/)
-- [Official BSP 1.0.1](https://components.espressif.com/components/espressif/esp32_s31_korvo_1/versions/1.0.1)
-- [BSP source and examples](https://github.com/espressif/esp-bsp/tree/master/bsp/esp32_s31_korvo_1)
-
-Project code is [MIT licensed](LICENSE). External components retain their own licenses; BSP source is not vendored here.
+Project code is [MIT licensed](LICENSE); dependencies retain their own licenses. Official references are in [hardware documentation](docs/HARDWARE.md). This scope excludes AI, voice recognition, cloud, phone apps, MQTT, Matter, OTA, custom PCB and camera video. Existing diagnostics remain optional console tools.

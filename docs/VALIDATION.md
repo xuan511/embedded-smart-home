@@ -1,75 +1,97 @@
 # 验证记录 / Validation record
 
-日期 / Date: **2026-10-26**
+日期 / Date: **2026-10-27**。本页对应双板版本；原提交 `bd7967a` 的 2026-10-26 编译记录是旧单板架构的历史结果，不能用作本轮双板编译或硬件证据。
 
-## 本轮实际完成 / Checks actually performed
+This record is for the two-board revision. Historical build claims in `bd7967a` do not validate this revision or any physical hardware.
 
-| 项目 / Check | 结果 / Result | 依据 / Evidence |
-| --- | --- | --- |
-| 纯 C 主机测试 / Portable C tests | PASS | GCC 13, C11, `-Wall -Wextra -Werror -pedantic` |
-| AddressSanitizer + UBSan | PASS | `ASAN_OPTIONS=detect_leaks=0 SANITIZE=1 python tools/test_host.py` |
-| SDK 环境检查 / Environment check | PASS | Python 3.12.14; target sources and RISC-V compiler found |
-| 默认固件 / Default firmware | BUILD PASS | `esp32s31`, LCD/touch + simulated sensors |
-| 外部外设配置 / External profile | BUILD PASS | UI off; real sensors, SD, MCP23017 and OV3660 probe enabled |
-| ESP32-S31 实物烧录 / Physical flashing | **未执行 / NOT RUN** | 当前执行环境未连接用户开发板 / No physical board attached |
-| 传感器/音频/屏幕/负载实测 / Peripheral behavior | **待验 / PENDING** | 需要用户板上完成下表 / Requires actual hardware |
+## 分开记录的状态 / Separate completion states
 
-SDK commit: `d35ea023029363d97c42565f85e0db23486f26b2` (ESP-IDF 6.2-dev). Compiler: `riscv32-esp-elf-gcc 16.1.0`, toolchain `esp-16.1.0_20260609`. CMake 4.4.4, Ninja 1.13.2. BSP 1.0.1; LVGL 9.6.0~1. Exact component resolution is checked in as `dependencies.lock`.
+| 范围 / Scope | 代码完成 / Implemented | 编译通过 / Built | 主机测试通过 / Host-tested | 真机验证通过 / Hardware-tested |
+| --- | --- | --- | --- | --- |
+| 共享协议、滞回、有效性 / Protocol and control | YES | YES, host + STM32 | PASS | NOT RUN |
+| Korvo 会话、阈值同步、过期状态 / Session, sync, stale handling | YES | PASS, ESP + host | PASS | NOT RUN |
+| STM32 阶段 1 / Link-only stage | YES | PASS | Endpoint PASS | NOT RUN |
+| STM32 阶段 2 / Test data + LED | YES | PASS | Endpoint PASS | NOT RUN |
+| STM32 阶段 3 / Actual sensor drivers + LED | YES | PASS | Rules/CRC PASS; electrical I/O not host tested | NOT RUN |
+| STM32 阶段 4 / Real sensor and GPIO drivers | YES | PASS | Endpoint/integration PASS; electrical I/O not host tested | NOT RUN |
+| Korvo USB/LCD/NVS/optional SD integration | YES | PASS, 3 configurations | State/protocol PASS; USB/LCD/NVS/SD not host tested | NOT RUN |
+| 连续运行 / Continuous operation | Test procedure provided | — | — | NOT RUN |
 
-| 本地编译 / Local build | 应用大小 / App bytes | SHA-256 |
-| --- | --- | --- |
-| Default | 1,456,800 | `46b9231c84170011e672c4883c08b8905ac8953731945508e39e16c0fa4da22d` |
-| External | 1,262,432 | `5d0fa1f0320c972d0cb363ff9e90bdcce35fc73786e1f5345b6ff5e7e2b063b3` |
+## 本轮已实际运行 / Checks actually run
 
-以上哈希仅对应本地验证产物，不保证不同路径/项目版本下重建仍逐字节相同。编译产物不加入源码仓库；GitHub Actions 配置会生成可下载的构建产物。CI 配置已加入，是否通过请看仓库 Actions 的实际状态，不能把“有 workflow 文件”当成 CI 已运行通过。
+`python tools/test_host.py` 在 Windows 的 GCC 14.2.0 上，以 C11、`-Wall -Wextra -Werror -pedantic` 编译并运行五套生产代码测试：
 
-Hashes identify local artifacts only; different build paths/project revisions may produce different bytes. Binaries are not committed. The Actions workflow uploads build artifacts; its presence alone is not a hosted-CI pass.
+- `test_core`：启动、滞回边界、通道独立故障、过期、模式、配置、SHT CRC/换算。
+- `test_link`：分包/粘包、超长、字段数量与范围、整数溢出、半帧超时、换行恢复、往返编码。
+- `test_stm32_controller`：握手/CONFIG 顺序、ACK、会话与重放、手动失联、自动运行、阶段限制、新会话手动关断。
+- `test_remote`：旧 ACK、配置在途更新、请求不提前改状态、数据年龄、毫秒回绕、序号耗尽、阈值量化。
+- `test_integration`：生产编解码连接两端状态机，覆盖读数、操作/应答、断线、重连、自动独立运行、单向断线。
 
-### 本地环境兼容说明 / Local environment compatibility
+All five suites pass. These execute actual shared C code on the host; they do not emulate USB enumeration, sensor electrical behavior, LCD/touch, NVS flash or load movement. Sanitizers were **not run in this Windows check**; the old container sanitizer result is not reused.
 
-本轮容器限制了 `/proc` 进程查询，因此对安装在本地工具环境中的 Component Manager 增加了一个临时开关，使用其文档描述的 Linux `os.getppid()` 路径，避免 `psutil.Process()` 查询失败。工程源码、官方 BSP 和 ESP-IDF 驱动没有因此改写。该处理不在仓库中，不是用户正常 PC 安装的必要步骤。AddressSanitizer 关闭了此容器不支持的 leak 检查，地址与未定义行为检查仍执行。
+STM32 实际交叉编译器 / Actual compiler: **Arm GNU 14.2.1**。四阶段均 CMake + Ninja、`-Wall -Wextra -Werror`，Flash 链接上限 65536 bytes、SRAM 20480 bytes：
 
-The execution container restricts `/proc`. A local-only Component Manager compatibility switch used the documented Linux parent-PID path instead of process-tree introspection. It is not part of this repository or a normal PC setup step. Leak checking was disabled in this restricted container; address/undefined-behavior checks ran. SDK emits some upstream Kconfig deprecation notices; they are not application compile errors.
+| Stage | Flash bytes | Static data/BSS bytes | Reserved stack bytes | Result |
+| --- | --- | --- | --- | --- |
+| 1 | 5260 | 528 | 2048 | PASS |
+| 2 | 5648 | 528 | 2048 | PASS |
+| 3 | 6652 | 528 | 2048 | PASS |
+| 4 | 6692 | 528 | 2048 | PASS |
 
-## 可复现命令 / Reproduction
+栈预算来自链接预留及编译 `.su` 静态分析，不是实测运行时栈峰值；无堆分配。默认 LED 配置 PC13 低有效仅为待核默认，编译通过不证明学习板 LED 接在这里。
 
-默认构建 / Default:
+The stack reserve is a build budget, not a measured high-water mark. The default LED mapping remains unconfirmed for the user's learning board.
 
-```bash
+## ESP32 固定构建环境 / ESP32 build baseline
+
+- Target: `esp32s31`.
+- ESP-IDF: `d35ea023029363d97c42565f85e0db23486f26b2` (6.2-dev), unchanged from the repository baseline.
+- RISC-V toolchain: `esp-16.1.0_20260609`, GCC 16.1.0.
+- BSP 1.0.1, LVGL 9.6.0~1, USB 1.6.0, CP210x VCP 2.2.0, CDC ACM 2.4.1. Existing locked dependencies retained; only the two selected USB driver dependencies were added.
+- Python 3.11.0; CMake 3.31.5; Ninja 1.13.2 for the final builds. Initial Ninja 1.12.1 builds hit the Windows 260-character path limit in optional configurations; no firmware/SDK source patch was used to bypass it.
+
+本机使用工作目录中的独立 SDK/tool 环境，没有改动用户原 SDK。必要 SDK 子模块均按 gitlink 精确提交获取；本机仅跳过无关目标子模块的自动下载检查，未改官方驱动或替换硬件函数。正常用户按 README 完整初始化所有子模块即可，无需该本地下载优化。
+
+The local SDK/tool environment is isolated. Required submodules use exact pinned commits. Only automatic fetching/checking of unrelated target submodules is skipped locally; SDK sources/drivers are not patched. Normal users should initialize all submodules as documented.
+
+## ESP32 实际构建结果 / Actual ESP32 builds
+
+所有配置均保留 LCD/触摸，`BSP_SD_FORMAT_ON_MOUNT_FAIL=n`。USB 配置不使用 Korvo 的外接 GPIO；模拟配置明确关闭真实链路。
+
+| Profile | LCD/touch | USB | SD logging | Simulation | App bytes | Result |
+| --- | --- | --- | --- | --- | --- | --- |
+| Default | ON | ON | OFF | OFF | 1444496 | PASS |
+| external.defaults | ON | ON | ON | OFF | 1547008 | PASS |
+| simulation.defaults | ON | OFF | OFF | ON | 1436544 | PASS |
+
+应用 BIN SHA-256 / Application hashes:
+
+- Default: `8bdef836383c9b44d917e3bec93296fb0175cc1cb2b835c37aba5720dae1771f`
+- SD: `9119b07d0d315d2aedc184d0b80297633add965f420dd19b1b466bbc3c544732`
+- Simulation: `77b5153ce1489f75d33ea0e03dae48cd1f23cc6088bbdccce2e54e84191f9276`
+
+本轮最终三个 Ninja 构建进程退出码均为 0，应用和 bootloader 分区大小检查通过。交付包 evidence 目录保留主机测试及最终编译日志；firmware 目录提供对应配置和固件。不同目录/构建时间可能产生不同 BIN 字节，哈希只标识本次产物，不是跨环境可重复哈希保证。
+
+All three final build processes exited 0 and passed partition-size checks. The delivery includes actual logs and artifacts. Hashes identify these artifacts; paths/build times may change rebuilt bytes. Hosted GitHub Actions has **not been observed passing**; a configured workflow is not a CI result.
+
+复现（已激活固定 SDK 的工程根目录）/ Reproduce from the activated fixed SDK:
+
+```powershell
 idf.py --preview set-target esp32s31
 idf.py --preview build
+idf.py --preview -B build-sd -D SDKCONFIG=build-sd/sdkconfig -D "SDKCONFIG_DEFAULTS=sdkconfig.defaults;configs/external.defaults" build
+idf.py --preview -B build-sim -D SDKCONFIG=build-sim/sdkconfig -D "SDKCONFIG_DEFAULTS=sdkconfig.defaults;configs/simulation.defaults" build
 python tools/test_host.py
+cmake -S stm32 -B stm32/build-stage1 -G Ninja -DSTAGE=1
+cmake --build stm32/build-stage1
 ```
 
-独立外设配置构建（无需覆盖默认 sdkconfig）/ Separate external-profile build:
+STM32 阶段 2/3/4 用独立目录和对应 `-DSTAGE=N`。验收仍须在实物完成，不能由上表替代。
 
-```bash
-idf.py --preview -B build-external -D SDKCONFIG=build-external/sdkconfig -D 'SDKCONFIG_DEFAULTS=sdkconfig.defaults;configs/external.defaults' build
-```
+## 真机验证与下一步 / Hardware and next action
 
-此配置用于覆盖可选代码分支；没有对应外接硬件时不能期待所有功能运行成功。若改变 Kconfig 选项或配置文件，在对应构建目录运行 `idf.py --preview reconfigure`，再重新编译。
+**本轮没有执行实物烧录或联调；所有真机结果 NOT RUN。** 未验证 USB 枚举/拔插、LCD/触摸、microSD 并行使用、UART 电平/时序、学习板 LED、真实传感器、驱动/负载动作、断电默认状态、NVS 掉电保存和连续运行。
 
-The external profile covers optional source branches. It requires the corresponding hardware for runtime success. Reconfigure the same build directory after changing configuration.
+No physical flashing or hardware integration was performed. All hardware checks remain NOT RUN. Do not describe an ON report as verified physical fan rotation.
 
-## 上板验收清单 / Hardware acceptance
-
-以下均为空白待记录，不能提前写 PASS。All items below remain pending until observed on hardware.
-
-| 操作 / Action | 预期 / Expected | 实测 / Observed |
-| --- | --- | --- |
-| UART 口烧录并复位 / Flash via UART | 启动无复位循环，有 `home>` / Stable boot and prompt | PENDING |
-| 默认 LCD / Default screen | 显示 SIMULATED；触摸命令有状态反馈 / Labelled simulation and command state | PENDING |
-| SET / PLAY / VOL+ / VOL− | 与 README 对应 / Matches documented actions | PENDING |
-| `home light on/off` | RGB 灯跟随 / Physical RGB changes | PENDING |
-| `home sim 30 55 50` in AUTO | 两路命令 ON / Both commands ON | PENDING |
-| `home sim 27 55 150` | 滞回保持 / Outputs held | PENDING |
-| `home sim 25 50 300` | 两路 OFF / Both OFF | PENDING |
-| `home fault`, 再 `home sim` | 故障关闭、恢复采集 / Fault and recovery | PENDING |
-| 修改阈值、save、断电 / Save and reboot | 阈值保留，模式回 AUTO / Thresholds restored | PENDING |
-| `home test tone/mic` | 测试音/左右峰值 / Audible tone and microphone peaks | PENDING |
-| memory / i2c / wifi | 日志合理，无意外复位 / Plausible logs without reset | PENDING |
-| 有/无 SD 卡 / With/without card | CSV / 报错但其他功能继续 / Logs or graceful failure | PENDING |
-| 相机探测 / Camera probe | 正确 sensor/format；不声称预览 / Sensor and format only | PENDING |
-| 真实传感器单路掉线 / Disconnect one sensor | 仅对应自动输出关闭 / Independent fault handling | PENDING |
-| 实际风扇 / Physical fan | 真实动作与命令一致，复位期间保持关闭 / Verified actual movement and reset behavior | PENDING |
-| 2h → 8h 连续运行 / Soak test | 记录 heap、复位、故障与响应 / Record measured results | PENDING |
+下一步只做 [ACCEPTANCE 阶段①](ACCEPTANCE.md)：核实转串口芯片、电平及 STM32 供电/SWD，烧录 link-only 固件，记录握手、断线、重连。通过后再推进测试数据/LED、传感器、负载和保存/连续运行。
