@@ -1,61 +1,37 @@
-# 后续开发 / Development roadmap
+# 实施与验收顺序 / Implementation and acceptance order
 
-目标：先完成可以解释、可以联调、可以演示的本科计科毕设。增加功能前先验证当前链路，不用一次接入全部板载外设。
+目标是完成一个简单、可接线、可解释、可重复演示的双板环境监测与控制系统。代码可包含后续阶段，但真机验收必须从阶段 1 开始，当前阶段未通过就不增加下一组外设。当前真机均未进行；编译/主机测试结果以 [VALIDATION](VALIDATION.md) 为准。
 
-Goal: a demonstrable computer-science graduation project with understandable code and testable hardware/software integration. Finish one end-to-end path before adding more devices.
+The goal is a simple, wireable, understandable two-board system. Later-stage code can be present, but hardware acceptance starts at stage 1 and advances only after the current gate passes. No hardware checks have been run in this session. See [VALIDATION](VALIDATION.md) for distinct build and host-test results.
 
-## P0：板载最小闭环 / Onboard baseline
+| 顺序 / Order | 范围 / Scope | 完成依据 / Evidence needed | 真机状态 / Hardware status |
+| --- | --- | --- | --- |
+| ① 最小通信 / Minimum link | USB Host + CP2102N + UART；握手、双向消息、失联 / Handshake, responses, disconnect | 实际枚举身份、握手日志、拔插结果 / Enumeration and link logs | NOT RUN |
+| ② 测试数据 + LED / Test data + LED | STM32 测试数据明确标记；控制板载 LED 并应答 / Labelled samples, LED, acknowledgement | 显示、命令、LED 实际动作与应答 / Display, physical LED and replies | NOT RUN |
+| ③ 真实传感器 / Real sensors | SHT3x、BH1750，约 1Hz；独立有效性 / Real readings, independent validity | 趋势、断开/恢复和原始数据 / Trends, fault/recovery, raw data | NOT RUN |
+| ④ 实际负载 / Real loads | 灯/低压风扇驱动；手动、自动、滞回 / Drivers, manual, auto, hysteresis | GPIO 返回和实际动作分别记录 / Returned state plus physical observation | NOT RUN |
+| ⑤ 保存与异常 / Persistence/faults | NVS、同步、超时、过期、基础连续运行 / NVS, sync, timeout, expiry, running | 重启/重连/断线/运行记录 / Reboot, reconnect, fault and run logs | NOT RUN |
 
-- 刷默认固件；屏幕明确显示模拟数据。Boot the default build with simulation labelled.
-- 用实体按键、触摸、串口各切换一次 RGB 灯。Each input path should control the same LED state.
-- 注入 30°C/50lux、27°C/150lux、25°C/300lux，解释滞回为什么保持/切换。Verify hysteresis rather than switching at a single noisy threshold.
-- 改阈值、`home save`、断电重启，确认仅阈值恢复，模式回自动。Persist thresholds and verify reboot behavior.
-- 按需做音频/内存/I2C 自检，记录真实输出；某项自检失败不应被当成主控制链路已经失败。Record independent peripheral results.
+详细可执行步骤见 [ACCEPTANCE](ACCEPTANCE.md)，接线只按 [HARDWARE](HARDWARE.md)。STM32 使用 `STAGE=1..4` 控制启用范围，不把“所有模块一起接好”作为第一次运行前提。
 
-验收产物：一次完整演示录像、串口日志、板子与接线照片。The result is a short demonstration, console log and hardware photo.
+Follow [ACCEPTANCE](ACCEPTANCE.md) and [HARDWARE](HARDWARE.md). STM32 `STAGE=1..4` limits enabled peripherals; the first run does not require all devices to be connected.
 
-## P1：真实环境采集 / Real sensing
+## 当前下一步 / Immediate next step
 
-- 接 SHT3x 和 BH1750，启用真实配置，检查地址/CRC/单位。Verify addresses, CRC and physical units.
-- 用手握传感器/遮挡光线观察趋势，与参考仪器比较。Do not invent accuracy figures; record actual measurements.
-- 分别断开温湿度、光照；验证故障独立，恢复后重新正常采集。Each failed channel should only affect its own AUTO output.
-- 对读数做必要的短窗口平均，再决定是否需要滤波；避免先堆复杂算法。Add a small averaging filter only after observing actual noise.
+已知用户有 ST-Link；学习板具体板型、板载 LED 和转串口芯片尚未确认。先确认排针/供电/LED，取得已选 CP2102N 模块，再烧录两板阶段 1，保存一次握手、断开、重连的完整日志。该门槛通过后才烧阶段 2。
 
-验收：记录范围、采集周期、误差样本、掉线/恢复现象。Record measurement samples and fault behavior.
+The user has ST-Link; the exact learning board, onboard LED and UART-converter chip remain unidentified. Confirm headers/power/LED, obtain the selected CP2102N module, then flash stage 1 and retain handshake/disconnect/reconnect logs before advancing to stage 2.
 
-## P2：真实灯光与风扇 / Physical loads
+## 连续运行与论文材料 / Running evidence and report material
 
-- 默认 RGB 灯已经是真实灯光输出；需要另一盏灯和风扇时再加 MCP23017 + 驱动。Add external loads only after stable sensing.
-- 验证上电关闭、手动切换、自动阈值、重复开关、控制电源掉电和负载供电波动。Check startup behavior and power disturbances.
-- 如果论文要求执行反馈，再增加转速/电流采集，并区分“请求状态”“写输出成功”“真实反馈”。Add feedback only if required; the current ON label is a command.
+先做 30 分钟异常排查，再记录 2 小时连续运行；需要更长论文样本时另做 8 小时。记录开始/结束、实际时长、供电、复位、通信中断、传感器故障、阈值切换和操作响应。没有做过的项目保持 NOT RUN。
 
-## P3：稳定性与论文 / Stability and report
+Start with a 30-minute functional run and then record two hours. An eight-hour run can be a later additional dataset. Record actual duration, power, resets, disconnects, sensor faults, threshold transitions and response. Leave unrun checks marked NOT RUN.
 
-| 项目 / Check | 建议记录 / Suggested evidence |
-| --- | --- |
-| 连续运行 / Continuous operation | 先 2 小时，再 8 小时；记录复位次数、free heap、数据故障、输出切换次数 / 2h then 8h logs |
-| 阈值边界 / Boundaries | 上下阈值附近来回变化，确认不抖动 / Exercise both hysteresis edges |
-| 故障 / Faults | 单传感器断开、CRC 错误、数据超时、无 SD 卡 / Inject observable failures |
-| 操作 / Inputs | 快速按键、触摸和串口连续命令；检查拒绝次数 / Check bounded queue behavior |
-| 掉电保存 / Persistence | 明确 save 前后、重启后差异 / Compare unsaved vs saved thresholds |
-| 输出 / Loads | 软件命令与实际动作分别记录 / Record command and physical action separately |
+论文可围绕需求、双板分工、接线、驱动、简单协议、状态归属、滞回、异常处理和逐步联调展开。测试数据只证明链路和界面；真实采集、GPIO 状态、实际负载动作分别给证据。已有音频/内存/板载 I2C 等自检可以作为附录，不扩大基础验收。
 
-当前控制任务也执行低速传感器转换和 CSV 写入，并非硬实时设计。若实测卡写入阻塞或控制延迟不满足需求，再把采样/日志迁移到独立任务，用长度为 1 的最新值队列传给控制任务。不要在没有测量依据前先增加大量任务。
+The report can focus on requirements, board roles, wiring, drivers, protocol, ownership, hysteresis, failure handling and staged integration. Test data demonstrates the link/UI; real acquisition, GPIO state and physical loads require separate evidence. Existing optional diagnostics can be an appendix.
 
-The controller currently performs low-rate sensor conversion and CSV writes. It is not a hard real-time design. If measured storage latency is unacceptable, move sampling/logging to separate workers with a latest-value mailbox.
+本轮不增加 AI、语音识别、云平台、手机 App、MQTT、Matter、OTA、自研 PCB、摄像头视频、风扇 PWM 或转速反馈，也不并行维护第二套 STM32 工具链。先完成上述闭环。
 
-论文可围绕需求分析、模块设计、任务与消息组织、驱动接口、阈值算法、异常处理、联调过程和测试结果展开。不要把未实现的云端/语音/相机预览写成成果。
-
-The report can focus on requirements, modules, queue/state organization, drivers, control rules, integration and measured results. Describe future extensions as future work.
-
-## P4：任选扩展 / Optional extensions
-
-按兴趣选择一个即可 / Choose one extension at a time:
-
-1. **局域网 Web**：先提供只读状态页，再接入控制请求；所有命令仍走 `home_submit()`。Start with read-only status, then the existing command queue.
-2. **MQTT**：只回传有效读数/故障/命令状态，加入断线重连，不让云端失联影响本地自动控制。Keep local automation independent of cloud connectivity.
-3. **本地语音**：先确认 ESP-SR 对 S31 的当前支持，再把确定命令映射到现有 action。The microphone test is not speech recognition.
-4. **相机**：先验证官方取帧示例，再做独立预览；不与核心采集互相等待。Build frame capture before claiming video preview.
-5. **USB/BLE**：独立验证官方 Host/HID/串口或 BLE 示例，再加入服务；勿复用 LCD/SD 占用的 GPIO。Use supported official components instead of guessed pin mappings.
-
-不把 AI、联网、触摸屏、自研 PCB 或 OTA 作为基础毕设能否完成的前提。Keep the environmental monitoring/control baseline independently usable.
+This scope excludes AI, voice recognition, cloud, phone apps, MQTT, Matter, OTA, custom PCB, camera video, fan PWM/tachometer feedback and a second STM32 toolchain.

@@ -1,32 +1,18 @@
 menu "Smart Home"
     config HOME_UI
-        bool "Enable LCD and GT1151 touch dashboard"
+        bool "Enable LCD and GT1151 touch home page"
         default y
-    config HOME_REAL_SENSORS
-        bool "Use external SHT3x + BH1750 instead of explicit simulation"
+    config HOME_SIMULATION
+        bool "Explicit OFFLINE simulation (never used as USB fallback)"
         default n
         help
-            Connect only after verifying board I2C access and 3.3 V levels.
-            Uses the existing BSP I2C bus; never creates a second bus on the same pins.
-    config HOME_SHT_ADDRESS
-        hex "SHT3x 7-bit I2C address"
-        range 0x44 0x45
-        default 0x44
-    config HOME_BH_ADDRESS
-        hex "BH1750 7-bit I2C address"
-        range 0x23 0x5c
-        default 0x23
+            Does not start the two-board USB link. LCD always says SIMULATION.
+            Real sensors and load outputs belong exclusively to STM32.
     config HOME_SD_LOG
-        bool "Mount an inserted FAT microSD and append CSV every 10 seconds"
+        bool "Append CSV to inserted FAT microSD every 10 seconds"
         default n
     config HOME_CAMERA
-        bool "Enable on-demand DVP camera sensor/format probe (no streaming)"
+        bool "Optional existing camera probe (outside acceptance scope)"
         select CAMERA_OV3660
         default n
-    config HOME_MCP_OUTPUTS
-        bool "Drive external MCP23017 GPA0 light / GPA1 fan (active high)"
-        default n
-        help
-            Optional external module at 0x20 on BSP I2C. Use transistor/MOSFET
-            stages and independent load power. Outputs are NOT load feedback.
 endmenu

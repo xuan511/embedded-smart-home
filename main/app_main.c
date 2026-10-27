@@ -17,5 +17,5 @@ void app_main(void)
     err = home_ui_start();
     if (err != ESP_OK) ESP_LOGW("boot", "LCD/touch: %s; serial console remains available", esp_err_to_name(err));
     ESP_ERROR_CHECK(home_console_start());
-    ESP_LOGI("boot", "Ready. Type: home help. All sensor values are labelled SIMULATED or REAL.");
+    ESP_LOGI("boot", "Ready. Type: home help. Source and link state are labelled; outputs are STM32 reports, without physical feedback.");
 }

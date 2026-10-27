@@ -14,12 +14,33 @@ jobs:
         env:
           SANITIZE: '1'
         run: python3 tools/test_host.py
+  stm32:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install single Arm GNU toolchain
+        run: sudo apt-get update -qq && sudo apt-get install -y gcc-arm-none-eabi libnewlib-arm-none-eabi ninja-build
+      - name: Build all four hardware acceptance stages
+        shell: bash
+        run: |
+          for stage in 1 2 3 4; do
+            cmake -S stm32 -B "stm32/build-stage$stage" -G Ninja -DSTAGE="$stage"
+            cmake --build "stm32/build-stage$stage"
+          done
+      - uses: actions/upload-artifact@v4
+        with:
+          name: stm32-stages
+          path: |
+            stm32/build-stage*/*.elf
+            stm32/build-stage*/*.bin
+            stm32/build-stage*/*.hex
+            stm32/build-stage*/*.map
   firmware:
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        profile: [default, external]
+        profile: [default, external, simulation]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -40,10 +61,11 @@ jobs:
           PROFILE: ${{ matrix.profile }}
         run: |
           source "$RUNNER_TEMP/esp-idf/export.sh"
-          if [ "$PROFILE" = external ]; then
-            idf.py --preview -D SDKCONFIG_DEFAULTS='sdkconfig.defaults;configs/external.defaults' set-target esp32s31
-          else
+          python tools/check_environment.py
+          if [ "$PROFILE" = default ]; then
             idf.py --preview set-target esp32s31
+          else
+            idf.py --preview -D "SDKCONFIG_DEFAULTS=sdkconfig.defaults;configs/$PROFILE.defaults" set-target esp32s31
           fi
           idf.py --preview build
       - name: Upload build outputs
