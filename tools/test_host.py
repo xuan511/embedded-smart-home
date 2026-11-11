@@ -12,6 +12,9 @@ core = "components/home_core/home_core.c"
 link = "components/home_link/home_link.c"
 remote = "components/home_remote/home_remote.c"
 stm = "stm32/src/stm32_controller.c"
+cjson = root / ".test-deps/cjson"
+if not (cjson / "cJSON.c").is_file():
+    raise SystemExit("Run python tools/fetch_test_deps.py first (pinned cJSON test dependency).")
 compiler = os.environ.get("CC") or shutil.which("cc") or shutil.which("gcc")
 if not compiler:
     raise SystemExit("Install a native host C compiler (for example MinGW-w64 GCC on Windows), or set CC. Arm/riscv cross compilers cannot run these host tests.")
@@ -23,6 +26,7 @@ suites = {
     "test_stm32_controller": [core, link, stm, "tests/test_stm32_controller.c"],
     "test_remote": [core, link, remote, "tests/test_remote.c"],
     "test_integration": [core, link, remote, stm, "tests/test_integration.c"],
+    "test_gateway": [core, "components/home_gateway/home_gateway.c", str(cjson / "cJSON.c"), "tests/test_gateway.c"],
 }
 with tempfile.TemporaryDirectory(prefix="home-test-") as work:
     for suite, sources in suites.items():
@@ -33,6 +37,8 @@ with tempfile.TemporaryDirectory(prefix="home-test-") as work:
             "-I", str(root / "components/home_link/include"),
             "-I", str(root / "components/home_remote/include"),
             "-I", str(root / "stm32/include"),
+            "-I", str(root / "components/home_gateway/include"),
+            "-I", str(cjson),
         ] + [str(root / source) for source in sources] + ["-lm", "-o", str(executable)]
         if os.environ.get("SANITIZE") == "1":
             command[1:1] = ["-fsanitize=address,undefined", "-fno-omit-frame-pointer"]

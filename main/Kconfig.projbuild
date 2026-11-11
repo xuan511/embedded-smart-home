@@ -15,4 +15,37 @@ menu "Smart Home"
         bool "Optional existing camera probe (outside acceptance scope)"
         select CAMERA_OV3660
         default n
+    menu "Network"
+        config HOME_NETWORK
+            bool "Compile Wi-Fi, LAN phone API and MQTT upload"
+            default y
+        config HOME_WIFI_SSID
+            string "Wi-Fi SSID (empty disables networking at runtime)"
+            default ""
+            depends on HOME_NETWORK
+        config HOME_WIFI_PASSWORD
+            string "Wi-Fi password"
+            default ""
+            depends on HOME_NETWORK
+        config HOME_API_TOKEN
+            string "LAN API token: 16..64 letters/digits/underscore/hyphen"
+            default ""
+            depends on HOME_NETWORK
+        config HOME_DEVICE_ID
+            string "Unique MQTT device ID: 1..32 letters/digits/underscore/hyphen"
+            default "korvo01"
+            depends on HOME_NETWORK
+        config HOME_MQTT_URI
+            string "LAN broker mqtt://IP:1883 (empty disables upload)"
+            default ""
+            depends on HOME_NETWORK
+        config HOME_MQTT_USERNAME
+            string "MQTT username (empty for broker without authentication)"
+            default ""
+            depends on HOME_NETWORK
+        config HOME_MQTT_PASSWORD
+            string "MQTT password"
+            default ""
+            depends on HOME_NETWORK
+    endmenu
 endmenu

@@ -7,6 +7,7 @@
 #include <stdio.h>
 #include "bsp/esp-bsp.h"
 #include "home_service.h"
+#include "home_network.h"
 #include "esp_log.h"
 
 static lv_obj_t *summary, *readings, *outputs, *health, *request;
@@ -56,9 +57,12 @@ static void refresh(lv_timer_t *timer)
         known ? (v.state.fan_on ? "ON" : "OFF") : "UNKNOWN",
         v.state.config.fan_on_c, v.state.config.fan_off_c,
         v.state.config.light_on_lux, v.state.config.light_off_lux);
-    lv_label_set_text_fmt(health, "Link: %s | Config: %s | SD: %s\nNo physical load feedback. Thresholds: serial home help",
+    home_network_state_t net; home_network_snapshot(&net);
+    lv_label_set_text_fmt(health, "USB: %s | Config: %s | SD: %s | Age: %lu ms\nWiFi: %s | IP: %s | MQTT: %s\nOutputs are STM32 reports; physical feedback unavailable.",
         v.simulated ? "SIMULATION" : (v.online ? "ONLINE" : "DISCONNECTED"),
-        v.synced ? "SYNCED" : "SYNCING", v.sd_ok ? "READY" : "OFF/ERROR");
+        v.synced ? "SYNCED" : "SYNCING", v.sd_ok ? "READY" : "OFF/ERROR",
+        (unsigned long)v.sample_age_ms, net.wifi ? "ONLINE" : "OFFLINE", net.ip,
+        net.mqtt ? "ONLINE" : "OFFLINE");
     lv_label_set_text(request, v.request_status);
 }
 #endif

@@ -1,0 +1,9 @@
+{
+  "description": "Korvo + STM32 LAN smart home graduation project",
+  "projectname": "embedded-smart-home",
+  "appid": "touristappid",
+  "compileType": "miniprogram",
+  "miniprogramRoot": "./",
+  "setting": { "es6": true, "urlCheck": true },
+  "libVersion": "3.7.0"
+}

@@ -1,0 +1,10 @@
+.page { padding: 24rpx; }
+.card { background: white; border-radius: 16rpx; padding: 24rpx; margin-bottom: 24rpx; line-height: 1.8; }
+.title { font-size: 34rpx; font-weight: 600; margin-bottom: 16rpx; }
+.reading { font-size: 36rpx; padding: 8rpx 0; }
+.source { color: #8a5700; }
+.hint { color: #536779; font-size: 24rpx; }
+.row { display: flex; flex-wrap: wrap; }
+.row button { flex: 1; min-width: 130rpx; }
+.row input { width: 40%; margin-right: 12rpx; }
+.message { padding: 16rpx; background: #edf5ff; border-radius: 8rpx; margin-top: 16rpx; }

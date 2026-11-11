@@ -11,6 +11,7 @@
 #include "home_service.h"
 #include "home_remote.h"
 #include "home_usb.h"
+#include "home_network.h"
 #include "board_io.h"
 #include "diagnostics.h"
 #include "bsp/esp-bsp.h"
@@ -118,6 +119,9 @@ static void controller_task(void *arg)
     uint64_t next_sample = 0, next_log = 10000, next_status = 0;
     bool sd_ok = false, was_attached = false;
     int32_t user_seq = 0, user_session = 0;
+    uint32_t request_id = 0, rejected_id = 0;
+    home_result_t result = HOME_RESULT_NONE;
+    int stm32_result = -1;
     char notice[96] = "No operation requested; load feedback unavailable";
 #if CONFIG_HOME_SD_LOG
     sd_ok = bsp_sdcard_mount() == ESP_OK;
@@ -145,6 +149,8 @@ static void controller_task(void *arg)
                     snprintf(notice, sizeof(notice), "STM32 ACK seq=%ld result=%ld (0=OK); no physical feedback",
                         (long)user_seq, (long)message.v[2]);
                     user_seq = 0;
+                    stm32_result = (int)message.v[2];
+                    result = stm32_result == 0 ? HOME_RESULT_ACK : HOME_RESULT_REJECTED;
                 }
                 got = home_usb_poll(&message, &attached, &received_ms);
             }
@@ -153,20 +159,42 @@ static void controller_task(void *arg)
             if (user_seq && (!remote.attached || remote.session != user_session)) {
                 snprintf(notice, sizeof(notice), "Request timed out/disconnected; result UNKNOWN; not replayed");
                 user_seq = 0;
+                result = HOME_RESULT_TIMEOUT;
             }
         }
         home_request_t r;
         if (xQueueReceive(requests, &r, pdMS_TO_TICKS(20)) == pdTRUE) {
+            // Preserve the owner of an in-flight operation; never silently replace
+            // its correlation ID with another phone/LCD/console request.
+            if (user_seq) {
+                ESP_LOGW(TAG, "Busy; operation id=%" PRIu32 " rejected", r.request_id);
+                rejected_id = r.request_id;
+                portENTER_CRITICAL(&count_lock); ++rejected; portEXIT_CRITICAL(&count_lock);
+                continue;
+            }
+            request_id = r.request_id;
+            if (rejected_id == request_id) rejected_id = 0;
+            stm32_result = -1;
+            result = HOME_RESULT_REJECTED;
             if (r.action == HOME_CONFIG) {
                 if (home_config_valid(&r.config)) {
-                    home_remote_config(&remote, &r.config);
-                    sim_state.config = r.config;
-                    snprintf(notice, sizeof(notice), "Thresholds changed in RAM; sync pending; home save persists");
+                    esp_err_t err = r.persist ? save_config(&r.config) : ESP_OK;
+                    if (err == ESP_OK) {
+                        home_remote_config(&remote, &r.config);
+                        sim_state.config = r.config;
+                        result = r.persist ? HOME_RESULT_SAVED : HOME_RESULT_PENDING;
+                        snprintf(notice, sizeof(notice), "Thresholds %s; inspect Config SYNCED for STM32 copy",
+                            r.persist ? "saved to NVS" : "changed in RAM (home save persists)");
+                    } else {
+                        result = HOME_RESULT_SAVE_ERROR;
+                        snprintf(notice, sizeof(notice), "NVS error: %s; thresholds not changed", esp_err_to_name(err));
+                    }
                 }
             } else if (r.action == HOME_SAVE) {
                 esp_err_t err = save_config(&remote.desired);
                 snprintf(notice, sizeof(notice), "NVS save: %s", esp_err_to_name(err));
                 ESP_LOGI(TAG, "%s", notice);
+                result = err == ESP_OK ? HOME_RESULT_SAVED : HOME_RESULT_SAVE_ERROR;
             } else if (CONFIG_HOME_SIMULATION) {
                 switch (r.action) {
                 case HOME_AUTO: sim_state.automatic = true; break;
@@ -182,6 +210,7 @@ static void controller_task(void *arg)
                 default: break;
                 }
                 snprintf(notice, sizeof(notice), "SIMULATION operation applied; no STM32/load feedback");
+                result = HOME_RESULT_SIMULATED;
             } else {
                 hl_type_t type = HL_SET;
                 int which = 0, value = 0;
@@ -199,6 +228,7 @@ static void controller_task(void *arg)
                 if (valid && home_remote_request(&remote, type, which, value, (uint32_t)now, &message)) {
                     user_seq = message.v[1];
                     user_session = remote.session;
+                    result = HOME_RESULT_PENDING;
                     snprintf(notice, sizeof(notice), "REQUEST %s %d/%d seq=%ld; awaiting STM32 ACK",
                         type == HL_MODE ? "MODE" : "SET", which, value, (long)user_seq);
                     home_usb_send(&message);
@@ -208,7 +238,8 @@ static void controller_task(void *arg)
         }
         now = home_now_ms();
         home_snapshot_t view = {.uptime_ms = now, .sd_ok = sd_ok,
-            .simulated = CONFIG_HOME_SIMULATION};
+            .simulated = CONFIG_HOME_SIMULATION, .request_id = request_id, .rejected_id = rejected_id,
+            .request_result = result, .stm32_result = stm32_result};
         if (CONFIG_HOME_SIMULATION) {
             if (now >= next_sample) {
                 sim.timestamp_ms = now;
@@ -351,5 +382,6 @@ esp_err_t home_console_start(void)
     ESP_RETURN_ON_ERROR(esp_console_new_repl_uart(&uart_cfg, &cfg, &repl), TAG, "Console init");
     const esp_console_cmd_t cmd = {.command = "home", .help = "Smart home: home help", .func = command};
     ESP_RETURN_ON_ERROR(esp_console_cmd_register(&cmd), TAG, "Console command");
+    ESP_RETURN_ON_ERROR(home_network_console_register(), TAG, "Network console");
     return esp_console_start_repl(repl);
 }

@@ -10,10 +10,20 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Fetch SHA256-pinned cJSON host dependency
+        run: python3 tools/fetch_test_deps.py
       - name: Portable C controller tests
         env:
           SANITIZE: '1'
         run: python3 tools/test_host.py
+      - name: Phone client and local MQTT integration (host fixtures)
+        run: |
+          python3 tools/build_bridge_fixture.py
+          npm ci --prefix tools/network-test
+          npm test --prefix tools/network-test
   stm32:
     runs-on: ubuntu-latest
     steps:

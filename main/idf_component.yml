@@ -4,3 +4,4 @@ dependencies:
   lvgl/lvgl: ">=9.2,<10"
   espressif/usb_host_cp210x_vcp: "==2.2.0"
   espressif/usb_host_cdc_acm: "==2.4.1"
+  espressif/mqtt: "==1.0.0"
