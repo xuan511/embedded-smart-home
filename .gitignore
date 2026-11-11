@@ -10,3 +10,5 @@ __pycache__/
 /.test-deps/
 /tools/network-test/node_modules/
 /miniprogram/project.private.config.json
+/network/passwd
+/network/mosquitto.conf

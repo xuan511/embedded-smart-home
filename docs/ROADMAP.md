@@ -11,6 +11,7 @@ The goal is a simple, wireable, understandable two-board system. Later-stage cod
 | ③ 真实传感器 / Real sensors | SHT3x、BH1750，约 1Hz；独立有效性 / Real readings, independent validity | 趋势、断开/恢复和原始数据 / Trends, fault/recovery, raw data | NOT RUN |
 | ④ 实际负载 / Real loads | 灯/低压风扇驱动；手动、自动、滞回 / Drivers, manual, auto, hysteresis | GPIO 返回和实际动作分别记录 / Returned state plus physical observation | NOT RUN |
 | ⑤ 保存与异常 / Persistence/faults | NVS、同步、超时、过期、基础连续运行 / NVS, sync, timeout, expiry, running | 重启/重连/断线/运行记录 / Reboot, reconnect, fault and run logs | NOT RUN |
+| ⑥ 网络扩展 / Network | MQTT 上传、微信小程序同网段控制 / MQTT upload, LAN phone controls | IP、订阅消息、手机 ACK 与真实动作、网络故障记录 / Network logs and physical observations | NOT RUN |
 
 详细可执行步骤见 [ACCEPTANCE](ACCEPTANCE.md)，接线只按 [HARDWARE](HARDWARE.md)。STM32 使用 `STAGE=1..4` 控制启用范围，不把“所有模块一起接好”作为第一次运行前提。
 
@@ -32,6 +33,6 @@ Start with a 30-minute functional run and then record two hours. An eight-hour r
 
 The report can focus on requirements, board roles, wiring, drivers, protocol, ownership, hysteresis, failure handling and staged integration. Test data demonstrates the link/UI; real acquisition, GPIO state and physical loads require separate evidence. Existing optional diagnostics can be an appendix.
 
-本轮不增加 AI、语音识别、云平台、手机 App、MQTT、Matter、OTA、自研 PCB、摄像头视频、风扇 PWM 或转速反馈，也不并行维护第二套 STM32 工具链。先完成上述闭环。
+2026-11-12 按最新需求增加 MQTT 和微信小程序，配置与验证见 [NETWORK](NETWORK.md)。仍不增加 AI、语音识别、云平台、独立手机 App、Matter、OTA、自研 PCB、摄像头视频、风扇 PWM 或转速反馈，也不维护第二套 STM32 工具链。
 
-This scope excludes AI, voice recognition, cloud, phone apps, MQTT, Matter, OTA, custom PCB, camera video, fan PWM/tachometer feedback and a second STM32 toolchain.
+The latest scope adds MQTT and a WeChat mini program. AI, voice recognition, cloud platforms, standalone phone apps, Matter, OTA, custom PCB, camera video, fan PWM/tachometer feedback and a second STM32 toolchain remain excluded.

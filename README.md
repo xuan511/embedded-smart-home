@@ -2,11 +2,13 @@
 
 [English](README.en.md) | 中文
 
-《智能家居环境监测与控制系统的设计与实现》双板工程。目标是完成一次真实的 **采集 → LCD 显示 → 触摸/串口操作 → 执行 → 状态返回** 演示，优先保持接线和代码简单。
+《智能家居环境监测与控制系统的设计与实现》双板工程。目标是完成一次真实的 **采集 → LCD/手机显示 → 触摸/串口/微信小程序操作 → 执行 → 状态返回 → MQTT 上传** 演示，优先保持接线和代码简单。
+
+**2026-11-12 网络扩展：** 已增加 Wi-Fi、MQTT 状态上传和同网段微信小程序控制；[完整网络配置、手机导入和验收方法](docs/NETWORK.md)。STM32 自动规则、现有 USB 转串口方案与 LCD/SD 接线保持不变。代码与主机测试已完成；具体构建/硬件结果分开记录，不将主机夹具当成实物。
 
 | 开发板 | 分工 |
 | --- | --- |
-| ESP32-S31-Korvo-1 V1.1 | 原配 LCD/触摸、调试串口、NVS 阈值保存、可选 microSD 日志 |
+| ESP32-S31-Korvo-1 V1.1 | 原配 LCD/触摸、统一操作队列、调试串口、NVS 阈值、Wi-Fi/MQTT/手机接口、可选 microSD |
 | STM32F103C8T6 学习板 | SHT3x 温湿度、BH1750 光照、灯/低压直流风扇开关、自动规则 |
 | 两板连接 | Korvo **USB-A Host → 指定 CP2102N USB 转串口模块 → STM32 USART1**，115200/8N1 |
 
@@ -55,6 +57,7 @@ cmake --version
 ninja --version
 git clone https://github.com/xuan511/embedded-smart-home.git C:\esp\embedded-smart-home
 Set-Location C:\esp\embedded-smart-home
+git switch codex/dual-board-usb-basics
 ```
 
 ## 分别构建与烧录
@@ -152,6 +155,7 @@ home save
 有 Python 和主机 C 编译器时：
 
 ```powershell
+python tools/fetch_test_deps.py
 python tools/test_host.py
 ```
 
@@ -163,9 +167,11 @@ python tools/test_host.py
 | `components/home_core/` | 纯 C 有效性、滞回、SHT CRC |
 | `components/home_link/` | 两端共用的 ASCII 行协议 |
 | `components/home_remote/` | Korvo 纯 C 会话、同步、请求与过期处理 |
+| `components/home_gateway/` | 共享手机命令校验、HTTP/MQTT JSON 快照 |
+| `miniprogram/`、`network/` | 微信小程序、局域网 Broker 配置示例 |
 | `stm32/` | 主循环、实际 UART/I2C/GPIO、启动/链接/构建 |
 | `tests/`、`tools/` | 主机测试、环境检查 |
 
 目标找不到时激活正确 SDK；组件下载失败先查网络/证书。USB 未枚举先核对模块芯片/VID/PID；枚举但无握手再查 UART TX/RX 交叉、3.3V 电平、STM32 阶段。LED 无反应先查 GPIO/极性。LCD 黑屏检查原配屏、FPC 方向和供电。排错先断开负载，回到最小通信链路。
 
-项目代码采用 [MIT](LICENSE)，外部依赖保留各自许可。官方资料见 [硬件文档](docs/HARDWARE.md)。本轮不增加 AI、语音、云平台、App、MQTT、Matter、OTA、自研 PCB 或相机视频；已有自检仅作可选串口工具。
+项目代码采用 [MIT](LICENSE)，外部依赖保留各自许可。官方资料见 [硬件文档](docs/HARDWARE.md)。按最新需求已增加 MQTT 和微信小程序；不扩展 AI、语音、云平台、独立手机 App、Matter、OTA、自研 PCB 或相机视频。已有自检仅作可选串口工具。

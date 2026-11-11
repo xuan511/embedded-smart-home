@@ -1,6 +1,6 @@
 dependencies:
   espressif/button:
-    component_hash: 7cb7e2944b5828f409af0c92f7fcc0e2d405de09c3325b7ee4a0eba5fb28dfdc
+    component_hash: 26345e8700d3c6435925f9a8f246d224f9c1b99f937c243fe400844eec514b4a
     dependencies:
     - name: espressif/cmake_utilities
       registry_url: https://components.espressif.com
@@ -12,7 +12,17 @@ dependencies:
     source:
       registry_url: https://components.espressif.com
       type: service
-    version: 4.2.2
+    version: 4.2.3
+  espressif/cjson:
+    component_hash: 9372811fb197926f522c467627cf4a8e72b681e0366e17879631da801103aef3
+    dependencies:
+    - name: idf
+      require: private
+      version: '>=5.0'
+    source:
+      registry_url: https://components.espressif.com/
+      type: service
+    version: 1.7.19
   espressif/cmake_utilities:
     component_hash: 351350613ceafba240b761b4ea991e0f231ac7a9f59a9ee901f751bddc0bb18f
     dependencies:
@@ -219,6 +229,16 @@ dependencies:
       registry_url: https://components.espressif.com
       type: service
     version: 3.1.1
+  espressif/mqtt:
+    component_hash: ffdad5659706b4dc14bc63f8eb73ef765efa015bf7e9adf71c813d52a2dc9342
+    dependencies:
+    - name: idf
+      require: private
+      version: '>=5.3'
+    source:
+      registry_url: https://components.espressif.com/
+      type: service
+    version: 1.0.0
   espressif/usb:
     component_hash: 99eee72ea224d9117d4c342442717a1f20bf8112e2ab5d7d7038b827874f4c92
     dependencies:
@@ -334,11 +354,13 @@ dependencies:
       type: service
     version: 9.6.0~1
 direct_dependencies:
+- espressif/cjson
 - espressif/esp32_s31_korvo_1
+- espressif/mqtt
 - espressif/usb_host_cdc_acm
 - espressif/usb_host_cp210x_vcp
 - idf
 - lvgl/lvgl
-manifest_hash: fe412b9f9d2503134db3baa475903f25e4772f5c6e48f63d57beff30a4ecd9e6
+manifest_hash: a5869a97ecdd6281cfcb80975855950819834d4576a009fcb6aaf673f617461e
 target: esp32s31
 version: 3.0.0

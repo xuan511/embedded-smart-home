@@ -2,11 +2,13 @@
 
 English | [中文](README.md)
 
-A two-board graduation project for **Design and Implementation of a Smart Home Environmental Monitoring and Control System**. The goal is a real demonstration: **measure → display → operate → actuate → return status**, with simple wiring and understandable code.
+A two-board graduation project for **Design and Implementation of a Smart Home Environmental Monitoring and Control System**. The goal is a real demonstration: **measure → LCD/phone display → operate → actuate → return status → MQTT upload**, with simple wiring and understandable code.
+
+**2026-11-12 network extension:** Wi-Fi, MQTT telemetry and an authenticated same-subnet WeChat mini program are implemented. See the bilingual [network setup and acceptance guide](docs/NETWORK.md). The selected USB-UART connection, STM32 automation and preserved LCD/SD wiring remain unchanged. Code, builds, host fixtures and physical verification are reported separately.
 
 | Board | Responsibility |
 | --- | --- |
-| ESP32-S31-Korvo-1 V1.1 | Original LCD/touch, debug console, NVS thresholds, optional microSD log |
+| ESP32-S31-Korvo-1 V1.1 | Original LCD/touch, unified requests, console, NVS thresholds, Wi-Fi/MQTT/LAN phone API, optional microSD |
 | STM32F103C8T6 learning board | SHT3x temperature/humidity, BH1750 light, lamp/fan drivers, local automation |
 | Link | Korvo **USB-A Host → specified CP2102N USB-UART module → STM32 USART1**, 115200/8N1 |
 
@@ -53,6 +55,7 @@ cmake --version
 ninja --version
 git clone https://github.com/xuan511/embedded-smart-home.git C:\esp\embedded-smart-home
 Set-Location C:\esp\embedded-smart-home
+git switch codex/dual-board-usb-basics
 ```
 
 ## Build and flash each board
@@ -152,6 +155,7 @@ For work without hardware, explicitly select simulation in menuconfig. The scree
 With Python and a host C compiler:
 
 ```powershell
+python tools/fetch_test_deps.py
 python tools/test_host.py
 ```
 
@@ -163,9 +167,11 @@ Tests exercise control rules, framing and endpoint state handling; they do not p
 | `components/home_core/` | Portable C validity, hysteresis and SHT CRC |
 | `components/home_link/` | Shared ASCII-line protocol |
 | `components/home_remote/` | Portable Korvo session, synchronization, request and expiry handling |
+| `components/home_gateway/` | Strict phone commands and shared HTTP/MQTT JSON snapshots |
+| `miniprogram/`, `network/` | WeChat mini program and LAN broker example |
 | `stm32/` | Main loop, real UART/I2C/GPIO, startup/link/build files |
 | `tests/`, `tools/` | Host tests and environment checks |
 
 For an unknown target, activate the correct SDK. For download failures, inspect network/certificates. If USB does not enumerate, verify chip/VID/PID; if it enumerates but does not handshake, check UART crossing, 3.3V logic and STM32 stage. Verify LED pin/polarity before blaming communication. For LCD issues, check the original panel, FPC direction and power. Disconnect loads and return to the minimum link when troubleshooting.
 
-Project code is [MIT licensed](LICENSE); dependencies retain their own licenses. Official references are in [hardware documentation](docs/HARDWARE.md). This scope excludes AI, voice recognition, cloud, phone apps, MQTT, Matter, OTA, custom PCB and camera video. Existing diagnostics remain optional console tools.
+Project code is [MIT licensed](LICENSE); dependencies retain their own licenses. Official references are in [hardware documentation](docs/HARDWARE.md). The latest requested scope adds MQTT and a WeChat mini program. AI, voice recognition, cloud platforms, standalone phone apps, Matter, OTA, custom PCB and camera video remain excluded. Existing diagnostics remain optional console tools.

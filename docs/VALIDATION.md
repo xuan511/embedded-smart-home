@@ -1,5 +1,26 @@
 # 验证记录 / Validation record
 
+## 2026-11-12 网络扩展 / Network extension
+
+新增 Wi-Fi STA、官方 ESP-MQTT 1.0.0、带令牌 LAN HTTP 接口、微信小程序及共享 JSON 校验。没有升级 ESP-IDF/BSP、没有改变 USB-UART 接线。实现提交 `61275fabba536838bd9bf751f1b75e866a1fba5d` 的 [CI 实际结果](https://github.com/xuan511/embedded-smart-home/actions/runs/43062818208) 五个 job 全部 success：默认/SD/模拟 ESP 配置、STM32 四阶段、主机测试。随后平面 JSON 预校验、HTTP 错误关闭连接及依赖锁文件的收尾修订，必须以对应新提交的 PR checks 为准，不借用前一提交的成功。
+
+已读取 job 原始日志核对：SDK `d35ea023029363d97c42565f85e0db23486f26b2`、完整递归子模块 OK、GCC 16.1.0、环境检查 PASS、cJSON 1.7.19、MQTT 1.0.0、Project build complete。新依赖锁文件取自本次外设配置 CI 产物，其 ZIP SHA256 为 `98529653731dbcc639437505af3d81278250def5896f1a3c88746714edb5f04b`。
+
+| 本轮范围 | 代码完成 | 编译通过 | 主机测试通过 | 真机验证通过 |
+| --- | --- | --- | --- | --- |
+| Korvo Wi-Fi/HTTP/ESP-MQTT/LCD 扩展 | YES | CI 三配置 PASS（以上提交） | JSON 与状态交互 PASS；ESP 网络运行时未运行 | NOT RUN |
+| STM32 传感器、风扇/灯及规则 | YES，沿用真实驱动 | 本地 Arm GNU 14.2.1 阶段 4 PASS，CI 四阶段 PASS | 控制/协议 PASS；电气驱动未测试 | NOT RUN |
+| 微信小程序客户端 | YES | JS 语法/JSON 静态检查；未在微信工具编译预览 | 实际 client.js 经本机 HTTP/MQTT 夹具 PASS | NOT RUN |
+| MQTT 数据传输 | YES | 已进入 ESP 固件构建 | 实际本机 TCP 发布/订阅、异常断线遗嘱 PASS | NOT RUN（ESP-MQTT 运行时） |
+| 手机阈值保存 | YES，NVS 成功后再修改/同步 | ESP CI PASS | 量化/校验/运行时同步 PASS；NVS 不模拟为已验证 | NOT RUN |
+| 连续运行、手机实机、负载实际动作 | 有验收方法和只读日志工具 | 工具可语法检查 | 不据夹具宣布实物成功 | NOT RUN |
+
+本地已实际运行六套 C 测试，GCC 14.2.0、C11、Wall/Wextra/Werror/pedantic；CI 同时执行 ASan/UBSan。新增 `test_gateway` 检查重复键、非法字段、类型、溢出、嵌套、过长体、NUL、尾随数据、阈值量化、坏/过期值 null 和 physical_feedback=false。`tools/network-test` 使用真实 MQTT 连接、真实小程序客户端和实际生产 C 编解码/状态机；传感器输入始终为 TEST，HTTP/UART/时钟属于主机夹具。
+
+主机未运行 USB Host 枚举、Wi-Fi 射频、ESP httpd/ESP-MQTT 任务、LCD/触摸、NVS 掉电、传感器 I2C、实际风扇和微信运行时。本机串口枚举无设备，未烧录。`live_check.py` 提供真实 HTTP 状态抓取，但当前未对实物运行；不把语法检查当成实机验收。
+
+## 以下为此前双板实现的历史记录 / Earlier two-board history
+
 日期 / Date: **2026-10-27**。本页对应双板版本；原提交 `bd7967a` 的 2026-10-26 编译记录是旧单板架构的历史结果，不能用作本轮双板编译或硬件证据。
 
 This record is for the two-board revision. Historical build claims in `bd7967a` do not validate this revision or any physical hardware.

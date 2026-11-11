@@ -50,7 +50,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        profile: [default, external, simulation]
+        profile: [default, external, simulation, network]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5

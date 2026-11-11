@@ -8,7 +8,9 @@ USB 接收队列保存回调的真实接收时间。服务处理延迟不会重�
 
 ```mermaid
 flowchart LR
-    Inputs["Korvo touch / keys / console"] --> Queue["Bounded request queue"]
+    Phone["WeChat mini program / same subnet"] -->|"HTTP + Bearer token"| API["Korvo LAN API / strict JSON"]
+    API --> Queue["Bounded request queue"]
+    Inputs["Korvo touch / keys / console"] --> Queue
     Queue --> Host["Korvo USB link service"]
     NVS["Korvo NVS thresholds"] --> Host
     Host <-->|"USB-A Host / CP2102N / UART"| STM["STM32 main loop + C controller"]
@@ -18,6 +20,8 @@ flowchart LR
     Host --> Snapshot["Returned state / connection / age"]
     Snapshot --> UI["LCD and console"]
     Snapshot --> SD["Optional microSD CSV"]
+    Snapshot --> API
+    Snapshot --> MQTT["ESP-MQTT / Wi-Fi / LAN Broker"]
 ```
 
 ## 状态归属 / Ownership
@@ -35,6 +39,8 @@ flowchart LR
 UI/按键回调只投递请求；队列满报告失败。服务处理出站请求和入站状态，并发布短锁保护的快照；LCD/串口/SD 读取快照。不要在 UI 回调中做阻塞 USB/I2C/SD 操作或直接修改返回状态。
 
 UI/key callbacks only enqueue requests. The service processes requests and incoming state, then publishes a snapshot protected during memory copies. A full queue reports rejection. Callbacks do not perform blocking USB/I2C/storage work or directly change reported state.
+
+网络扩展复用同一队列：HTTP 返回 queued，不冒充 STM32 ACK；带 ID 的最终结果、拒绝 ID 与 GPIO 回报独立发布。网络只支持绝对开关，不接受 toggle。阈值手机操作先保存 Korvo NVS，成功后更新 desired 并向 STM32 同步；保存失败不更改配置。MQTT 每秒上传当前快照，不订阅控制主题，不缓存离线遥测。Wi-Fi/MQTT 的事件与上传任务不阻塞 USB 控制任务。屏幕和手机同时操作时，未完成的用户请求保留自己的关联 ID，后续冲突被拒绝。完整边界见 [NETWORK](NETWORK.md)。
 
 ## 上电、同步与重连 / Boot, synchronization and reconnect
 

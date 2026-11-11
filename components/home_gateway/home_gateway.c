@@ -39,6 +39,12 @@ bool home_api_decode(const char *body, size_t size, const home_config_t *current
 {
     if (!body || !out || !current || !size || size > HOME_API_BODY_MAX ||
         memchr(body, 0, size) || memchr(body, '\\', size)) return false;
+    // All supported commands are flat objects with fixed ASCII strings. Reject
+    // nesting before cJSON recursion so a 512-byte malformed body cannot exhaust
+    // the embedded HTTP task's stack.
+    unsigned objects = 0;
+    for (size_t i = 0; i < size; ++i)
+        if (body[i] == '[' || (body[i] == '{' && ++objects > 1)) return false;
     char text[HOME_API_BODY_MAX + 1];
     memcpy(text, body, size); text[size] = 0;
     cJSON *json = cJSON_ParseWithLengthOpts(text, size + 1, NULL, true);

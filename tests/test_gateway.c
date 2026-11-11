@@ -24,6 +24,7 @@ int main(void)
         "{\"id\":0,\"action\":\"fan\",\"on\":true}", "{\"id\":1.5,\"action\":\"fan\",\"on\":true}",
         "{\"id\":2147483648,\"action\":\"fan\",\"on\":true}",
         "{\"id\":1,\"action\":\"fan\",\"on\":true,\"extra\":0}",
+        "{\"id\":1,\"action\":\"fan\",\"on\":{\"nested\":true}}",
         "{\"id\":1,\"id\":2,\"action\":\"fan\",\"on\":true}",
         "{\"id\":1,\"action\":\"fan\\u0000junk\",\"on\":true}",
         "{\"id\":1,\"action\":\"fan\",\"on\":true} garbage",

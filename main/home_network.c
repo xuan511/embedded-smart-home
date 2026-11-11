@@ -48,7 +48,10 @@ static esp_err_t response(httpd_req_t *req, const char *status, const char *body
     httpd_resp_set_status(req, status);
     httpd_resp_set_type(req, "application/json");
     httpd_resp_set_hdr(req, "Cache-Control", "no-store");
-    return httpd_resp_sendstr(req, body);
+    esp_err_t err = httpd_resp_sendstr(req, body);
+    // Close after errors, including rejected requests whose body is unread.
+    // Never let leftover body bytes become another keep-alive HTTP request.
+    return status[0] >= '4' ? ESP_FAIL : err;
 }
 
 static esp_err_t get_state(httpd_req_t *req)

@@ -68,8 +68,8 @@ int main(void)
             update(); view.request_id = r.request_id;
             hl_message_t request;
             if (r.action == HOME_CONFIG) {
-                home_remote_config(&remote, &r.config); view.request_result = HOME_RESULT_SAVED;
-                // The fixture has RAM only: saved here models service dispatch, NOT NVS validation.
+                home_remote_config(&remote, &r.config); view.request_result = HOME_RESULT_PENDING;
+                // RAM-only fixture; do not claim a successful NVS save.
             } else {
                 bool mode = r.action == HOME_AUTO || r.action == HOME_MANUAL_MODE;
                 if (home_remote_request(&remote, mode ? HL_MODE : HL_SET,
@@ -79,7 +79,9 @@ int main(void)
                 } else view.request_result = HOME_RESULT_REJECTED;
             }
         }
-        update(); home_network_state_t net = {.enabled = true, .wifi = true};
+        update();
+        if (view.request_result == HOME_RESULT_PENDING && remote.synced) view.request_result = HOME_RESULT_ACK;
+        home_network_state_t net = {.enabled = true, .wifi = true};
         strcpy(net.ip, "127.0.0.1"); char json[HOME_API_STATE_MAX];
         assert(home_api_encode(&view, &net, json, sizeof(json))); puts(json); fflush(stdout);
     }

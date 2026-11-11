@@ -1,0 +1,11 @@
+# Compilation check only. Replace these values before flashing a network demo.
+# 192.0.2.0/24 is the reserved documentation network, not a real broker.
+CONFIG_HOME_NETWORK=y
+CONFIG_HOME_SD_LOG=y
+CONFIG_HOME_WIFI_SSID="BUILD_CHECK_ONLY"
+CONFIG_HOME_WIFI_PASSWORD="build-check-only"
+CONFIG_HOME_API_TOKEN="ci-placeholder-token-change-before-use"
+CONFIG_HOME_DEVICE_ID="buildcheck"
+CONFIG_HOME_MQTT_URI="mqtt://192.0.2.1:1883"
+CONFIG_HOME_MQTT_USERNAME="buildcheck"
+CONFIG_HOME_MQTT_PASSWORD="build-check-only"

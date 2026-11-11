@@ -2,7 +2,7 @@
   <view class="card">
     <view class="title">连接控制中心</view>
     <input placeholder="Korvo 内网 IP，例如 192.168.1.50" value="{{ip}}" data-key="ip" bindinput="input" />
-    <input placeholder="menuconfig 中配置的访问令牌" password value="{{token}}" data-key="token" bindinput="input" />
+    <input placeholder="menuconfig 中配置的访问令牌" password="{{true}}" value="{{token}}" data-key="token" bindinput="input" />
     <button bindtap="connect" disabled="{{busy}}">连接 / 刷新连接</button>
     <view class="hint">同一 Wi-Fi、同一网段；IP 在 Korvo 屏幕或 net status 查看</view>
   </view>

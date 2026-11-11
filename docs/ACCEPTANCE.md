@@ -152,3 +152,9 @@ Verify configuration ACK and successful NVS save before rebooting each board. Th
 连续运行记录必须写起止时间、实际时长、供电、采样/心跳周期、复位次数、断线次数和异常；没有完整记录就写未完成，不写“稳定运行”。如需论文更长测试，再做 8 小时并另存日志。
 
 Record start/end time, actual duration, supply, sample/heartbeat rates, resets, disconnects and abnormalities. An unrun soak is incomplete, not stable. An optional later 8-hour run needs its own evidence.
+
+## ⑥ MQTT 与手机 / MQTT and phone
+
+仅在 ①～⑤ 真实闭环通过后，按 [NETWORK](NETWORK.md) 配置 Wi-Fi、Broker 和微信小程序。依次保留：Korvo 取得 IP 的串口记录、MQTT 每秒收到的 source=sensor JSON、手机请求 ID 与 STM32 ACK、灯/风扇实际动作视频、阈值保存后重启的前后读数。接着测试 Broker 重启、手机离线、USB 拔出、单个传感器断开及 30 分钟运行；当前全部 **NOT RUN**。
+
+网络主机集成测试只运行固定标记 TEST 的传感器夹具与纯 C 协议/状态机，不能在 ①～⑥ 真机验收表上填 PASS。具体测试覆盖和未验证边界见 [VALIDATION](VALIDATION.md)。
