@@ -1,5 +1,19 @@
 # 验证记录 / Validation record
 
+## 2026-11-12 教程与可靠性复核 / Beginner documentation and reliability review
+
+本轮在 `a2cb09e` 上继续开发。该基线的 [六项 CI](https://github.com/xuan511/embedded-smart-home/actions/runs/43064970263) 已实际通过（ESP 默认/SD/模拟/完整网络配置、STM32 四阶段、主机测试），此处只作为基线记录，不替代下面修订的准确提交 checks。
+
+新增零基础完整教程、文档导航、官方手册与实现对应表、资料获取 manifest、毕设需求/演示/实验模板；厂商资料和工程自定规则分别归属。失效/重定向的资料不伪造已下载结果，ROHM 原文通过 Adafruit 官方指向的分销商镜像核对，获取方式保留在 manifest。
+
+修复小程序换设备暂沿用旧状态、迟到回调影响当前请求、退出页面后回调和在途 POST 的并发状态；保守计入 HTTP 往返/等待造成的样本与链路增龄，3 秒无新状态不保留可控假象。JSON 增加兼容字段 `stale_ms`、`link_age_ms`；服务器读取快照也真实更新链路年龄。错误 bool/source/读数类型不作为有效快照。
+
+只读实机记录工具现在严格拒绝布尔/非有限/空/超范围读数、故障、错误阶段、TEST/模拟、过期样本和链路，保守计入 HTTP 耗时，保留观察到的 Korvo uptime 复位、停滞、失败类型与主动中断。它仍不能验证传感器精度、STM32 复位次数或实际风扇动作。
+
+本地实际验证：六套 C 测试通过；8 个 Python 记录工具回归通过；新增小程序生命周期/切换/类型/增龄/应答测试通过；本机真实 MQTT 发布/订阅/遗嘱与协议/控制集成通过；JS/JSON/WXML 结构、文档本地链接及围栏检查通过。这些是主机验证，**微信官方编译器、手机、两块实物板、I2C/风扇及连续实机运行仍为 NOT RUN**。新代码已加入 CI 的主机步骤，最终构建结果以 [当前 PR checks](https://github.com/xuan511/embedded-smart-home/pull/1/checks) 的准确 SHA 为准。
+
+本地补全官方 SDK 子模块的尝试仍遇到 GitHub 网络错误，未冒充完整 Windows SDK 安装通过；ESP 固件复验继续使用 CI 中固定 SDK、完整子模块和官方安装/构建流程。
+
 ## 2026-11-12 网络扩展 / Network extension
 
 新增 Wi-Fi STA、官方 ESP-MQTT 1.0.0、带令牌 LAN HTTP 接口、微信小程序及共享 JSON 校验。没有升级 ESP-IDF/BSP、没有改变 USB-UART 接线。实现提交 `61275fabba536838bd9bf751f1b75e866a1fba5d` 的 [CI 实际结果](https://github.com/xuan511/embedded-smart-home/actions/runs/43062818208) 五个 job 全部 success：默认/SD/模拟 ESP 配置、STM32 四阶段、主机测试。随后平面 JSON 预校验、HTTP 错误关闭连接及依赖锁文件的收尾修订，必须以对应新提交的 PR checks 为准，不借用前一提交的成功。

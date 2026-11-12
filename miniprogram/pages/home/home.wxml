@@ -22,14 +22,14 @@
   <view class="card">
     <view class="title">模式与负载</view>
     <view class="row">
-      <button data-action="mode" data-mode="manual" bindtap="control" disabled="{{!connected || busy || (!state.simulated &amp;&amp; (!state.online || !state.synced))}}">手动模式</button>
-      <button data-action="mode" data-mode="auto" bindtap="control" disabled="{{!connected || busy || (!state.simulated &amp;&amp; (!state.online || !state.synced))}}">自动模式</button>
+      <button data-action="mode" data-mode="manual" bindtap="control" disabled="{{!canControl || busy}}">手动模式</button>
+      <button data-action="mode" data-mode="auto" bindtap="control" disabled="{{!canControl || busy}}">自动模式</button>
     </view>
     <view class="row">
-      <button data-action="light" data-on="true" bindtap="control" disabled="{{!connected || busy}}">开灯</button>
-      <button data-action="light" data-on="false" bindtap="control" disabled="{{!connected || busy}}">关灯</button>
-      <button data-action="fan" data-on="true" bindtap="control" disabled="{{!connected || busy}}">开风扇</button>
-      <button data-action="fan" data-on="false" bindtap="control" disabled="{{!connected || busy}}">关风扇</button>
+      <button data-action="light" data-on="true" bindtap="control" disabled="{{!canControl || busy}}">开灯</button>
+      <button data-action="light" data-on="false" bindtap="control" disabled="{{!canControl || busy}}">关灯</button>
+      <button data-action="fan" data-on="true" bindtap="control" disabled="{{!canControl || busy}}">开风扇</button>
+      <button data-action="fan" data-on="false" bindtap="control" disabled="{{!canControl || busy}}">关风扇</button>
     </view>
     <view class="hint">单独操作灯/风扇会切换为手动模式。手机退出后由 Korvo 继续与 STM32 保持通信；已有手动状态会保持。</view>
     <view class="message">{{message}}</view>

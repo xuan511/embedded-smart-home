@@ -56,7 +56,9 @@ void home_snapshot(home_snapshot_t *s)
     s->sample_age_ms = age > INT32_MAX ? INT32_MAX : (uint32_t)age;
     s->uptime_ms = now;
     if (!s->simulated) {
-        if ((uint64_t)s->link_age_ms + elapsed >= 3000) s->online = false;
+        uint64_t link_age = (uint64_t)s->link_age_ms + elapsed;
+        s->link_age_ms = link_age > INT32_MAX ? INT32_MAX : (uint32_t)link_age;
+        if (s->link_age_ms >= 3000) s->online = false;
         s->stale |= !s->online || age >= s->state.config.stale_ms;
         s->outputs_known &= s->online;
         if (!s->online) s->synced = false;

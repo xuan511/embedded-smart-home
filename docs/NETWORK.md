@@ -108,6 +108,8 @@ STM32 先完成原 [阶段 ①～⑤](ACCEPTANCE.md)，实际演示使用 `-DSTA
 
 返回 `202 {"id":102,"queued":true,"duplicate":false}` 只说明本地入队。轮询状态中的 `request_id`、`request_result`、`stm32_result`；`ack` 才是 STM32 成功应答，`rejected` / `timeout` / `save_error` 分别报告错误，`simulated` 明确不是硬件应答。并发冲突也可能在 `rejected_id` 中报告。没有执行器反馈时 `physical_feedback` 永远为 false。
 
+状态还包含 `sample_age_ms`、`stale_ms` 和 `link_age_ms`。读取快照时会继续增龄；小程序会保守计入 HTTP 往返耗时和下一次刷新前的等待，链路满 3 秒或样本达到 stale_ms 就不把旧值当有效。手机 3 秒收不到新状态则显示断开并禁用控制。切换连接目标会先清除旧设备状态，收到新设备有效快照后才开放操作。
+
 HTTP 服务器在当前上电周期内记住最近 8 个已入队 ID：相同 ID+相同原始 body 不重复入队；相同 ID 不同 body 返回 409。**客户端仍不自动重试超时操作**，缓存不是跨重启事务记录。所有网络负载命令设置绝对开关状态，避免重发 toggle 反转。控制繁忙返回 409，STM32 未就绪或队列满返回 503，非法输入 400，无令牌/错误令牌 401。
 
 ## MQTT 状态约定

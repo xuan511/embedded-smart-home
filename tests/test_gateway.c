@@ -42,6 +42,8 @@ int main(void)
     home_network_state_t net = {0}; char out[HOME_API_STATE_MAX];
     assert(home_api_encode(&view, &net, out, sizeof(out)));
     cJSON *j = cJSON_Parse(out); assert(j);
+    assert(cJSON_GetObjectItem(j, "stale_ms")->valuedouble == cfg.stale_ms);
+    assert(cJSON_GetObjectItem(j, "link_age_ms")->valuedouble == view.link_age_ms);
     assert(cJSON_IsNull(cJSON_GetObjectItem(j, "temperature_c")));
     assert(cJSON_IsNull(cJSON_GetObjectItem(j, "fan_on")));
     assert(cJSON_IsFalse(cJSON_GetObjectItem(j, "physical_feedback")));

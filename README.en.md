@@ -2,6 +2,8 @@
 
 English | [中文](README.md)
 
+For a detailed first-time path, see the [Chinese beginner tutorial](docs/BEGINNER_GUIDE.zh-CN.md) and [documentation index](docs/README.md). The [official reference map](docs/OFFICIAL_REFERENCE.md) separates manufacturer facts from project design; the [project/experiment guide](docs/PROJECT_GUIDE.zh-CN.md) provides demonstration and evidence templates.
+
 A two-board graduation project for **Design and Implementation of a Smart Home Environmental Monitoring and Control System**. The goal is a real demonstration: **measure → LCD/phone display → operate → actuate → return status → MQTT upload**, with simple wiring and understandable code.
 
 **2026-11-12 network extension:** Wi-Fi, MQTT telemetry and an authenticated same-subnet WeChat mini program are implemented. See the bilingual [network setup and acceptance guide](docs/NETWORK.md). The selected USB-UART connection, STM32 automation and preserved LCD/SD wiring remain unchanged. Code, builds, host fixtures and physical verification are reported separately.
@@ -47,7 +49,7 @@ If script execution is blocked, `Set-ExecutionPolicy -Scope Process Bypass` appl
 
 For `Filename longer than 260 characters`, first use short paths for the SDK, tools and project. The optional configurations in this local deep directory use the [official Ninja 1.13.2 release](https://github.com/ninja-build/ninja/releases/tag/v1.13.2) for long paths; ESP-IDF and BSP remain pinned.
 
-STM32 uses only **Arm GNU Toolchain + CMake + Ninja**. Install the Windows `arm-none-eabi` package from [Arm](https://developer.arm.com/downloads/-/arm-gnu-toolchain-downloads) and add its `bin` directory to PATH. CMake/Ninja from the activated IDF environment can be reused. Install [STM32CubeProgrammer](https://www.st.com/en/development-tools/stm32cubeprog.html) and use ST-Link for flashing. No Keil, Arduino, PlatformIO or RTOS is required. STM32 source has no external SDK dependency.
+STM32 uses only **Arm GNU Toolchain + CMake + Ninja**. Follow the migration link from the [official Arm toolchain overview](https://developer.arm.com/Tools%20and%20Software/GNU%20Toolchain) and select the tested **14.2.Rel1, Windows mingw-w64, `arm-none-eabi`** package; add its `bin` directory to PATH. The download-page migration is not a reason to upgrade this project. CMake/Ninja from the activated IDF environment can be reused. Install [STM32CubeProgrammer](https://www.st.com/en/development-tools/stm32cubeprog.html) and use ST-Link for flashing. No Keil, Arduino, PlatformIO or RTOS is required. STM32 source has no external SDK dependency.
 
 ```powershell
 arm-none-eabi-gcc --version

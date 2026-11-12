@@ -2,6 +2,8 @@
 
 [English](README.en.md) | 中文
 
+**零基础先读：[完整入门教程](docs/BEGINNER_GUIDE.zh-CN.md)。** 从认识接口、打开 PowerShell、安装、编译、分别烧录到逐步接线、MQTT 和手机预览，每阶段都有成功门槛与排错。[文档导航](docs/README.md)提供阅读顺序，[官方手册对应表](docs/OFFICIAL_REFERENCE.md)说明每项硬件/驱动事实的出处，[毕设实施与实验记录](docs/PROJECT_GUIDE.zh-CN.md)用于准备演示和保留真实结果。
+
 《智能家居环境监测与控制系统的设计与实现》双板工程。目标是完成一次真实的 **采集 → LCD/手机显示 → 触摸/串口/微信小程序操作 → 执行 → 状态返回 → MQTT 上传** 演示，优先保持接线和代码简单。
 
 **2026-11-12 网络扩展：** 已增加 Wi-Fi、MQTT 状态上传和同网段微信小程序控制；[完整网络配置、手机导入和验收方法](docs/NETWORK.md)。STM32 自动规则、现有 USB 转串口方案与 LCD/SD 接线保持不变。代码与主机测试已完成；具体构建/硬件结果分开记录，不将主机夹具当成实物。
@@ -49,7 +51,7 @@ git -c core.longpaths=true submodule update --init --recursive
 
 若提示 `Filename longer than 260 characters`，先把 SDK、工具目录和工程移到上述短路径后重新构建。本轮本地深目录的可选配置使用了 [Ninja 1.13.2 官方发行版](https://github.com/ninja-build/ninja/releases/tag/v1.13.2)处理长路径；ESP-IDF/BSP 版本保持不变。
 
-STM32 只采用 **Arm GNU Toolchain + CMake + Ninja**。安装 [Arm 官方工具链](https://developer.arm.com/downloads/-/arm-gnu-toolchain-downloads)，选择 Windows 的 `arm-none-eabi`，把其 `bin` 加入 PATH；CMake/Ninja 可复用 ESP-IDF 终端中的版本。烧录安装 [STM32CubeProgrammer](https://www.st.com/en/development-tools/stm32cubeprog.html)，使用 ST-Link。无需 Keil、Arduino、PlatformIO、FreeRTOS；STM32 源码无外部 SDK 下载依赖。
+STM32 只采用 **Arm GNU Toolchain + CMake + Ninja**。从 [Arm 官方工具链入口](https://developer.arm.com/Tools%20and%20Software/GNU%20Toolchain)跟随官方迁移链接，优先使用已验证的 **14.2.Rel1、Windows mingw-w64、`arm-none-eabi`** 发行包，把其 `bin` 加入 PATH；CMake/Ninja 可复用 ESP-IDF 终端中的版本。旧下载页迁移不是升级工程的理由。烧录安装 [STM32CubeProgrammer](https://www.st.com/en/development-tools/stm32cubeprog.html)，使用 ST-Link。无需 Keil、Arduino、PlatformIO、FreeRTOS；STM32 源码无外部 SDK 下载依赖。
 
 ```powershell
 arm-none-eabi-gcc --version

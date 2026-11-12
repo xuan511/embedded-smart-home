@@ -100,6 +100,8 @@ bool home_api_encode(const home_snapshot_t *v, const home_network_state_t *net,
     STR("source", v->simulated ? "simulation" : v->source == 1 ? "test" : v->source == 2 ? "sensor" : "none");
     BOOL("simulated", v->simulated); BOOL("online", v->online); BOOL("synced", v->synced);
     BOOL("stale", v->stale); NUM("sample_age_ms", v->sample_age_ms);
+    NUM("stale_ms", v->state.config.stale_ms);
+    NUM("link_age_ms", v->link_age_ms);
     READING("temperature_c", v->state.sample.temperature_c, v->stale || v->state.temperature_fault);
     READING("humidity_pct", v->state.sample.humidity_pct, v->stale || v->state.humidity_fault);
     READING("illuminance_lux", v->state.sample.illuminance_lux, v->stale || v->state.light_fault);
