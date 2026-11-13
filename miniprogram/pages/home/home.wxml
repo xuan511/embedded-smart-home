@@ -1,0 +1,46 @@
+<view class="page">
+  <view class="card">
+    <view class="title">连接控制中心</view>
+    <input placeholder="Korvo 内网 IP，例如 192.168.1.50" value="{{ip}}" data-key="ip" bindinput="input" />
+    <input placeholder="menuconfig 中配置的访问令牌" password="{{true}}" value="{{token}}" data-key="token" bindinput="input" />
+    <button bindtap="connect" disabled="{{busy}}">连接 / 刷新连接</button>
+    <view class="hint">同一 Wi-Fi、同一网段；IP 在 Korvo 屏幕或 net status 查看</view>
+  </view>
+  <view class="card">
+    <view class="title">家居状态 · {{connected ? '已连接' : '离线，读数不可用'}}</view>
+    <block wx:if="{{connected}}">
+      <view class="source">数据来源：{{display.source}} · 阶段 {{state.stage}}</view>
+      <view class="reading">温度　{{display.temperature}}</view>
+      <view class="reading">湿度　{{display.humidity}}</view>
+      <view class="reading">光照　{{display.light}}</view>
+      <view>USB：{{state.online ? '在线' : '断开'}} · 数据：{{state.stale ? '已过期' : '有效'}} · {{state.sample_age_ms}} ms</view>
+      <view>模式：{{display.mode}} · 灯：{{display.lamp}} · 风扇：{{display.fan}}</view>
+      <view>参数：{{state.synced ? '已同步' : '待同步'}} · MQTT：{{state.mqtt ? '已连接' : '断开/未启用'}} · SD：{{state.sd_ok ? '就绪' : '未启用/故障'}}</view>
+      <view class="hint">联网提示：{{display.networkHint}}</view>
+      <view class="hint">输出为 STM32 回报的控制状态；没有转速/电流反馈，实际运行须现场观察。</view>
+    </block>
+  </view>
+  <view class="card">
+    <view class="title">模式与负载</view>
+    <view class="row">
+      <button data-action="mode" data-mode="manual" bindtap="control" disabled="{{!canControl || busy}}">手动模式</button>
+      <button data-action="mode" data-mode="auto" bindtap="control" disabled="{{!canControl || busy}}">自动模式</button>
+    </view>
+    <view class="row">
+      <button data-action="light" data-on="true" bindtap="control" disabled="{{!canControl || busy}}">开灯</button>
+      <button data-action="light" data-on="false" bindtap="control" disabled="{{!canControl || busy}}">关灯</button>
+      <button data-action="fan" data-on="true" bindtap="control" disabled="{{!canControl || busy}}">开风扇</button>
+      <button data-action="fan" data-on="false" bindtap="control" disabled="{{!canControl || busy}}">关风扇</button>
+    </view>
+    <view class="hint">单独操作灯/风扇会切换为手动模式。手机退出后由 Korvo 继续与 STM32 保持通信；已有手动状态会保持。</view>
+    <view class="message">{{message}}</view>
+  </view>
+  <view class="card">
+    <view class="title">自动阈值（带滞回）</view>
+    <view>风扇开 / 关温度（℃）</view>
+    <view class="row"><input type="digit" value="{{fanOn}}" data-key="fanOn" bindinput="input" /><input type="digit" value="{{fanOff}}" data-key="fanOff" bindinput="input" /></view>
+    <view>灯开 / 关照度（lx）</view>
+    <view class="row"><input type="digit" value="{{lightOn}}" data-key="lightOn" bindinput="input" /><input type="digit" value="{{lightOff}}" data-key="lightOff" bindinput="input" /></view>
+    <button bindtap="thresholds" disabled="{{!connected || busy}}">保存到 Korvo 并同步 STM32</button>
+  </view>
+</view>

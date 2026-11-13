@@ -1,0 +1,39 @@
+{
+  "checked_date": "2026-11-12",
+  "hardware_verified": false,
+  "support_is_an_engineering_inference": true,
+  "idf_commit": "d35ea023029363d97c42565f85e0db23486f26b2",
+  "mqtt": {
+    "registry": "https://components.espressif.com/components/espressif/mqtt/versions/1.0.0",
+    "source_commit": "2c3e1e0942afcc5b3cea2710ffe220fe699da02a",
+    "source": "https://github.com/espressif/esp-mqtt/tree/2c3e1e0942afcc5b3cea2710ffe220fe699da02a",
+    "downloaded_archive_sha256": "4e658480970f7fd816bfea58f2ef5eac0337a0cc30234d94b836d8904d5e1680",
+    "managed_component_hash": "ffdad5659706b4dc14bc63f8eb73ef765efa015bf7e9adf71c813d52a2dc9342",
+    "claim": "Official ESP-MQTT API; the exact S31 firmware configuration builds in CI. This does not verify Wi-Fi or broker operation on a physical Korvo."
+  },
+  "cjson": {
+    "registry": "https://components.espressif.com/components/espressif/cjson/versions/1.7.19",
+    "managed_component_hash": "9372811fb197926f522c467627cf4a8e72b681e0366e17879631da801103aef3",
+    "upstream_commit": "c859b25da02955fef659d658b8f324b5cde87be3",
+    "host_test_c_sha256": "298581a04a36c0165da4b0aade235c23088cb2faa58651d720ea2f3706ed0b0d",
+    "host_test_h_sha256": "25b0145150d500498e4d209cec69c18c42cf818bffcc54690be3b895a2a16dee"
+  },
+  "wechat": [
+    {
+      "url": "https://developers.weixin.qq.com/miniprogram/dev/framework/ability/network.html",
+      "downloaded_markdown_url": "https://developers.weixin.qq.com/miniprogram/dev/framework/ability/network.md",
+      "downloaded_markdown_sha256": "fa63e20283c39ac2e9105cfdfdd5dc4bdf5107bc24bc44208c2d82cae201a383",
+      "claim": "Base library 2.4.0 introduced LAN IP networking; same-device IP is excluded."
+    },
+    {
+      "url": "https://developers.weixin.qq.com/miniprogram/dev/framework/ability/mDNS.html",
+      "downloaded_markdown_url": "https://developers.weixin.qq.com/miniprogram/dev/framework/ability/mDNS.md",
+      "downloaded_markdown_sha256": "53b9b3ef50adc0206c9a8192334fa5fa703a8df7517cc1bdbd369f4985cffb27",
+      "claim": "HTTP/WS allowed to another IP on the same subnet without secure-domain validation. Manual IP entry avoids the documented iOS mDNS limitation. Actual phone preview has not been tested."
+    }
+  ],
+  "validation_commit": "61275fabba536838bd9bf751f1b75e866a1fba5d",
+  "validation_run": "https://github.com/xuan511/embedded-smart-home/actions/runs/43062818208",
+  "all_five_jobs_passed": true,
+  "subsequent_changes_require_their_own_pr_checks": true
+}

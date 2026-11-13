@@ -1,6 +1,3 @@
-# Compile coverage profile only. Requires external hardware to run successfully.
-CONFIG_HOME_UI=n
-CONFIG_HOME_REAL_SENSORS=y
+# Real two-board build, including the optional SD branch.
+CONFIG_HOME_SIMULATION=n
 CONFIG_HOME_SD_LOG=y
-CONFIG_HOME_CAMERA=y
-CONFIG_HOME_MCP_OUTPUTS=y

@@ -13,6 +13,7 @@
 #include "esp_wifi.h"
 #include "esp_event.h"
 #include "esp_netif.h"
+#include "home_network.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/queue.h"
 #include "freertos/semphr.h"
@@ -136,6 +137,8 @@ static esp_err_t camera_test(void)
 
 static esp_err_t wifi_test(void)
 {
+    home_network_state_t net; home_network_snapshot(&net);
+    if (net.enabled) return ESP_ERR_INVALID_STATE; // Never stop the operational Wi-Fi link.
     static bool ready;
     if (!ready) {
         ESP_RETURN_ON_ERROR(esp_netif_init(), TAG, "netif");

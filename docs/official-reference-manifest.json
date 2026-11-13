@@ -1,0 +1,469 @@
+{
+  "checked_date": "2026-11-12",
+  "reviewed_baseline": "a2cb09ee28dd3b23d8ec08c2452518fde57df199",
+  "scope": "official-reference audit, not physical or vendor certification",
+  "hardware_validation": "NOT RUN",
+  "idf_commit": "d35ea023029363d97c42565f85e0db23486f26b2",
+  "application_design_is_not_vendor_specification": true,
+  "sources": [
+    {
+      "id": "st-rm0008.pdf",
+      "url": "https://www.st.com/resource/en/reference_manual/rm0008-stm32f103xx-advanced-armbased-32bit-mcus-stmicroelectronics.pdf",
+      "checked_date": "2026-11-12",
+      "status": "unavailable",
+      "error": "HTTPError: HTTP Error 567: Unknown Status",
+      "sha256": null,
+      "reference_review": {
+        "method": "official web search excerpt; whole-PDF browser extraction rejected for size",
+        "revision": "RM0008 Rev 21",
+        "sections": [
+          "7 RCC",
+          "9 GPIO",
+          "15 TIM2..TIM5",
+          "27 USART",
+          "27.3.4 fractional baud rate",
+          "27.3.5 tolerance to clock deviation"
+        ]
+      }
+    },
+    {
+      "id": "st-ds5319.pdf",
+      "url": "https://www.st.com/resource/en/datasheet/stm32f103c8.pdf",
+      "checked_date": "2026-11-12",
+      "status": "unavailable",
+      "error": "HTTPError: HTTP Error 567: Unknown Status",
+      "sha256": null,
+      "reference_review": {
+        "method": "official PDF web open/find, not local PDF download",
+        "revision": "DS5319 Rev 20 July 2025",
+        "sections": [
+          "Device overview",
+          "3 Pinouts and pin description/Table 5",
+          "5.3.7 HSI/Table 24"
+        ]
+      }
+    },
+    {
+      "id": "st-pm0056.pdf",
+      "url": "https://www.st.com/resource/en/programming_manual/pm0056-stm32f10xxx20xxx21xxxl1xxxx-cortexm3-programming-manual-stmicroelectronics.pdf",
+      "checked_date": "2026-11-12",
+      "status": "unavailable",
+      "error": "HTTPError: HTTP Error 567: Unknown Status",
+      "sha256": null,
+      "reference_review": {
+        "method": "official PDF web open at alternate cd00228163.pdf URL; not local PDF download",
+        "opened_url": "https://www.st.com/resource/en/programming_manual/cd00228163.pdf",
+        "revision": "PM0056 Rev 7 December 2024",
+        "sections": [
+          "2.3.4 Vector table",
+          "NVIC/SCB",
+          "4.5 SysTick"
+        ]
+      }
+    },
+    {
+      "id": "st-um2237.pdf",
+      "url": "https://www.st.com/resource/en/user_manual/um2237-stm32cubeprogrammer-software-description-stmicroelectronics.pdf",
+      "checked_date": "2026-11-12",
+      "status": "unavailable",
+      "error": "HTTPError: HTTP Error 567: Unknown Status",
+      "sha256": null
+    },
+    {
+      "id": "sensirion-sht3x-dis.pdf",
+      "url": "https://sensirion.com/media/documents/213E6A3B/63A5A569/Datasheet_SHT3x_DIS.pdf",
+      "checked_date": "2026-11-12",
+      "status": 200,
+      "final_url": "https://sensirion.com/media/documents/213E6A3B/63A5A569/Datasheet_SHT3x_DIS.pdf",
+      "content_type": "application/pdf",
+      "bytes": 810136,
+      "sha256": "095b1853e7f4328f5897c9ca6c392a7dd8b0202eda66b0a2629f9cb840dd496d",
+      "local_audit_file": "work/manual_audit/sensirion-sht3x-dis.pdf"
+    },
+    {
+      "id": "rohm-bh1750-old.pdf",
+      "url": "https://www.rohm.com/datasheet/BH1750FVI/bh1750fvi-e",
+      "checked_date": "2026-11-12",
+      "status": "unavailable",
+      "error": "HTTPError: HTTP Error 403: Forbidden",
+      "sha256": null
+    },
+    {
+      "id": "rohm-bh1750-cdn.pdf",
+      "url": "https://fscdn.rohm.com/en/products/databook/datasheet/ic/sensor/light/bh1750fvi-e.pdf",
+      "checked_date": "2026-11-12",
+      "status": "unavailable",
+      "error": "HTTPError: HTTP Error 404: The requested content does not exist.",
+      "sha256": null
+    },
+    {
+      "id": "silabs-cp2102n.pdf",
+      "url": "https://www.silabs.com/documents/public/data-sheets/cp2102n-datasheet.pdf",
+      "checked_date": "2026-11-12",
+      "status": "unavailable",
+      "error": "TimeoutError: The read operation timed out",
+      "sha256": null,
+      "reference_review": {
+        "method": "official PDF web open, not local download",
+        "revision": "Rev 1.5",
+        "sections": [
+          "1",
+          "2",
+          "3.1.7",
+          "4.1",
+          "4.2",
+          "4.5"
+        ]
+      }
+    },
+    {
+      "id": "adafruit-pinouts.html",
+      "url": "https://learn.adafruit.com/adafruit-mosfet-driver/pinouts",
+      "checked_date": "2026-11-12",
+      "status": 200,
+      "final_url": "https://learn.adafruit.com/adafruit-mosfet-driver/pinouts",
+      "content_type": "text/html; charset=utf-8",
+      "bytes": 77850,
+      "sha256": "98467bd9dd56ef49f426a6ba2941aa6a8ae10656a17b5323f4f6a7eaff928758",
+      "local_audit_file": "work/manual_audit/adafruit-pinouts.html"
+    },
+    {
+      "id": "idf-windows-setup.html",
+      "url": "https://docs.espressif.com/projects/esp-idf/en/latest/esp32s31/get-started/windows-setup.html",
+      "checked_date": "2026-11-12",
+      "status": 200,
+      "final_url": "https://docs.espressif.com/projects/esp-idf/en/latest/esp32s31/get-started/windows-setup.html",
+      "content_type": "text/html",
+      "bytes": 30328,
+      "sha256": "167a1b0b644a939ddbe5ee35584039b4a0d4076b18d8ccf24433e23911e01cbb",
+      "local_audit_file": "work/manual_audit/idf-windows-setup.html"
+    },
+    {
+      "id": "git-windows.html",
+      "url": "https://git-scm.com/install/windows",
+      "checked_date": "2026-11-12",
+      "status": 200,
+      "final_url": "https://git-scm.com/install/windows",
+      "content_type": "text/html; charset=utf-8",
+      "bytes": 8875,
+      "sha256": "e23c664b06dbaf02a17bf68b01c0a522ad2abc2a498b45a946c1086923179c4f",
+      "local_audit_file": "work/manual_audit/git-windows.html"
+    },
+    {
+      "id": "python-windows.html",
+      "url": "https://www.python.org/downloads/windows/",
+      "checked_date": "2026-11-12",
+      "status": 200,
+      "final_url": "https://www.python.org/downloads/windows/",
+      "content_type": "text/html; charset=utf-8",
+      "bytes": 601454,
+      "sha256": "a0dcea5a0c19c700714caa0df340b9523b841c992bda3f778fd8f9ac34613d1b",
+      "local_audit_file": "work/manual_audit/python-windows.html"
+    },
+    {
+      "id": "cmake-download.html",
+      "url": "https://cmake.org/download/",
+      "checked_date": "2026-11-12",
+      "status": 200,
+      "final_url": "https://cmake.org/download/",
+      "content_type": "text/html; charset=UTF-8",
+      "bytes": 85090,
+      "sha256": "84fad77790bbeb5c0b9ff9d7c10e9cb73d60b036d1e526a33e5a4ee6f95b6369",
+      "local_audit_file": "work/manual_audit/cmake-download.html"
+    },
+    {
+      "id": "ninja-manual.html",
+      "url": "https://ninja-build.org/manual.html",
+      "checked_date": "2026-11-12",
+      "status": 200,
+      "final_url": "https://ninja-build.org/manual.html",
+      "content_type": "text/html; charset=utf-8",
+      "bytes": 82364,
+      "sha256": "1c7caab92a197040aa2596c71267ecee765d8230c47eb39fc2e40daaf0084812",
+      "local_audit_file": "work/manual_audit/ninja-manual.html"
+    },
+    {
+      "id": "arm-toolchain.html",
+      "url": "https://developer.arm.com/downloads/-/arm-gnu-toolchain-downloads",
+      "checked_date": "2026-11-12",
+      "status": "unavailable",
+      "error": "URLError: <urlopen error [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:992)>",
+      "sha256": null,
+      "reference_review": {
+        "method": "official indexed page and GitLab access attempt; installer not downloaded",
+        "official_index_url": "https://developer.arm.com/Tools%20and%20Software/GNU%20Toolchain",
+        "official_migration_url": "https://gitlab.arm.com/tooling/gnu-toolchains-for-arm",
+        "gitlab_status": "JavaScript anti-bot challenge",
+        "project_version_kept": "14.2.Rel1"
+      }
+    },
+    {
+      "id": "st-programmer.html",
+      "url": "https://www.st.com/en/development-tools/stm32cubeprog.html",
+      "checked_date": "2026-11-12",
+      "status": "unavailable",
+      "error": "HTTPError: HTTP Error 567: Unknown Status",
+      "sha256": null
+    },
+    {
+      "id": "wechat-lan.md",
+      "url": "https://developers.weixin.qq.com/miniprogram/dev/framework/ability/mDNS.md",
+      "checked_date": "2026-11-12",
+      "status": 200,
+      "final_url": "https://developers.weixin.qq.com/miniprogram/dev/framework/ability/mDNS.md",
+      "content_type": "text/markdown; charset=utf-8",
+      "bytes": 2492,
+      "sha256": "53b9b3ef50adc0206c9a8192334fa5fa703a8df7517cc1bdbd369f4985cffb27",
+      "local_audit_file": "work/manual_audit/wechat-lan.md"
+    },
+    {
+      "id": "wechat-network.md",
+      "url": "https://developers.weixin.qq.com/miniprogram/dev/framework/ability/network.md",
+      "checked_date": "2026-11-12",
+      "status": 200,
+      "final_url": "https://developers.weixin.qq.com/miniprogram/dev/framework/ability/network.md",
+      "content_type": "text/markdown; charset=utf-8",
+      "bytes": 8111,
+      "sha256": "fa63e20283c39ac2e9105cfdfdd5dc4bdf5107bc24bc44208c2d82cae201a383",
+      "local_audit_file": "work/manual_audit/wechat-network.md"
+    },
+    {
+      "id": "mqtt-readme.md",
+      "url": "https://raw.githubusercontent.com/espressif/esp-mqtt/2c3e1e0942afcc5b3cea2710ffe220fe699da02a/README.md",
+      "checked_date": "2026-11-12",
+      "status": 200,
+      "final_url": "https://raw.githubusercontent.com/espressif/esp-mqtt/2c3e1e0942afcc5b3cea2710ffe220fe699da02a/README.md",
+      "content_type": "text/plain; charset=utf-8",
+      "bytes": 2097,
+      "sha256": "388922ed982a05c6e2b17eb9c583b7e73393bb66f52d8670b4e15674c8e690d5",
+      "local_audit_file": "work/manual_audit/mqtt-readme.md"
+    },
+    {
+      "id": "mqtt-header.h",
+      "url": "https://raw.githubusercontent.com/espressif/esp-mqtt/2c3e1e0942afcc5b3cea2710ffe220fe699da02a/include/mqtt_client.h",
+      "checked_date": "2026-11-12",
+      "status": 200,
+      "final_url": "https://raw.githubusercontent.com/espressif/esp-mqtt/2c3e1e0942afcc5b3cea2710ffe220fe699da02a/include/mqtt_client.h",
+      "content_type": "text/plain; charset=utf-8",
+      "bytes": 32426,
+      "sha256": "6b05afe12c80f9a77127f776c2ed787a67e22cba3be7ad66358efe470b221bd5",
+      "local_audit_file": "work/manual_audit/mqtt-header.h"
+    },
+    {
+      "id": "bh1750-driver.c",
+      "url": "https://raw.githubusercontent.com/espressif/esp-iot-solution/7a813417274c663226601f390668b9c8e5eec768/components/sensors/light_sensor/bh1750/bh1750.c",
+      "checked_date": "2026-11-12",
+      "status": 200,
+      "final_url": "https://raw.githubusercontent.com/espressif/esp-iot-solution/7a813417274c663226601f390668b9c8e5eec768/components/sensors/light_sensor/bh1750/bh1750.c",
+      "content_type": "text/plain; charset=utf-8",
+      "bytes": 5155,
+      "sha256": "53b8ecdae32d88a41258883eaf814244f2904d65e7a4282dedcda171e848622f",
+      "local_audit_file": "work/manual_audit/bh1750-driver.c"
+    },
+    {
+      "id": "nxp-um10204.pdf",
+      "url": "https://www.nxp.com/docs/en/user-guide/UM10204.pdf",
+      "checked_date": "2026-11-12",
+      "status": 200,
+      "final_url": "https://www.nxp.com/docs/en/user-guide/UM10204.pdf",
+      "content_type": "application/pdf",
+      "bytes": 750958,
+      "sha256": "dc91f00f65584e06ef36e26c93bf9d91a95fb3c8a1830a9223e53caf678b36af",
+      "local_audit_file": "work/manual_audit/nxp-um10204.pdf"
+    },
+    {
+      "id": "st-cube-cli.html",
+      "url": "https://dev.st.com/stm32cube-docs/prog/2.23.0/en/docs/markup/CubeProg_Command_Lines.html",
+      "checked_date": "2026-11-12",
+      "status": 200,
+      "final_url": "https://dev.st.com/stm32cube-docs/prog/2.23.0/en/docs/markup/CubeProg_Command_Lines.html",
+      "content_type": "text/html",
+      "bytes": 244272,
+      "sha256": "6f5f04c16615e298bca47073ac7c47413794159b65938ba3176ff68de5d22c4d",
+      "local_audit_file": "work/manual_audit/st-cube-cli.html"
+    },
+    {
+      "id": "idf-http-server.h",
+      "url": "https://raw.githubusercontent.com/espressif/esp-idf/d35ea023029363d97c42565f85e0db23486f26b2/components/esp_http_server/include/esp_http_server.h",
+      "checked_date": "2026-11-12",
+      "status": 200,
+      "final_url": "https://raw.githubusercontent.com/espressif/esp-idf/d35ea023029363d97c42565f85e0db23486f26b2/components/esp_http_server/include/esp_http_server.h",
+      "content_type": "text/plain; charset=utf-8",
+      "bytes": 86417,
+      "sha256": "27b16c3949e24ad520816e6f3c07e14a3e27cb4bcc34b7f40a119cdf2484beef",
+      "local_audit_file": "work/manual_audit/idf-http-server.h"
+    },
+    {
+      "id": "idf-wifi-station.c",
+      "url": "https://raw.githubusercontent.com/espressif/esp-idf/d35ea023029363d97c42565f85e0db23486f26b2/examples/wifi/getting_started/station/main/station_example_main.c",
+      "checked_date": "2026-11-12",
+      "status": 200,
+      "final_url": "https://raw.githubusercontent.com/espressif/esp-idf/d35ea023029363d97c42565f85e0db23486f26b2/examples/wifi/getting_started/station/main/station_example_main.c",
+      "content_type": "text/plain; charset=utf-8",
+      "bytes": 7473,
+      "sha256": "b406938b3a63ed2a03b041fd148cebc39e9c2e895f53016ca5e5e57ad9fa002b",
+      "local_audit_file": "work/manual_audit/idf-wifi-station.c"
+    },
+    {
+      "id": "idf-nvs.h",
+      "url": "https://raw.githubusercontent.com/espressif/esp-idf/d35ea023029363d97c42565f85e0db23486f26b2/components/nvs_flash/include/nvs.h",
+      "checked_date": "2026-11-12",
+      "status": "unavailable",
+      "error": "TimeoutError: The read operation timed out",
+      "sha256": null
+    },
+    {
+      "id": "idf-install.ps1",
+      "url": "https://raw.githubusercontent.com/espressif/esp-idf/d35ea023029363d97c42565f85e0db23486f26b2/install.ps1",
+      "checked_date": "2026-11-12",
+      "status": 200,
+      "final_url": "https://raw.githubusercontent.com/espressif/esp-idf/d35ea023029363d97c42565f85e0db23486f26b2/install.ps1",
+      "content_type": "text/plain; charset=utf-8",
+      "bytes": 1488,
+      "sha256": "b0df4482617579043eb875723698857afdf540f088fa974bcceb716f29eecead",
+      "local_audit_file": "work/manual_audit/idf-install.ps1"
+    },
+    {
+      "id": "idf-export.ps1",
+      "url": "https://raw.githubusercontent.com/espressif/esp-idf/d35ea023029363d97c42565f85e0db23486f26b2/export.ps1",
+      "checked_date": "2026-11-12",
+      "status": 200,
+      "final_url": "https://raw.githubusercontent.com/espressif/esp-idf/d35ea023029363d97c42565f85e0db23486f26b2/export.ps1",
+      "content_type": "text/plain; charset=utf-8",
+      "bytes": 575,
+      "sha256": "9d1c357825d9af0d2d7312b2dc035d413061552b2afb3a0772a2be9e849572be",
+      "local_audit_file": "work/manual_audit/idf-export.ps1"
+    },
+    {
+      "id": "st-cmsis-f103xb.h",
+      "url": "https://raw.githubusercontent.com/STMicroelectronics/cmsis-device-f1/v4.3.5/Include/stm32f103xb.h",
+      "checked_date": "2026-11-12",
+      "status": 200,
+      "final_url": "https://raw.githubusercontent.com/STMicroelectronics/cmsis-device-f1/v4.3.5/Include/stm32f103xb.h",
+      "bytes": 842883,
+      "sha256": "d9c7c613d9fea74220892b4fbc3e80617493acad82a04bafadab2b4a7198399c",
+      "local_audit_file": "work/manual_audit/st-cmsis-f103xb.h",
+      "source_commit": "8a76309ed1250d817e9c888c4417171d2ba3ba63"
+    },
+    {
+      "id": "st-startup-f103xb.s",
+      "url": "https://raw.githubusercontent.com/STMicroelectronics/cmsis-device-f1/v4.3.5/Source/Templates/gcc/startup_stm32f103xb.s",
+      "checked_date": "2026-11-12",
+      "status": 200,
+      "final_url": "https://raw.githubusercontent.com/STMicroelectronics/cmsis-device-f1/v4.3.5/Source/Templates/gcc/startup_stm32f103xb.s",
+      "bytes": 9725,
+      "sha256": "a9a5fc7ed5ff617527dd98b3092830f4d17ed4bf57c99eac2c53bdb514ce138c",
+      "local_audit_file": "work/manual_audit/st-startup-f103xb.s",
+      "source_commit": "8a76309ed1250d817e9c888c4417171d2ba3ba63"
+    },
+    {
+      "id": "wechat-page",
+      "url": "https://developers.weixin.qq.com/miniprogram/dev/reference/api/Page.md",
+      "rehash_date": "2026-11-12",
+      "status": "existing official-source bytes rehashed, not a fresh HTTP download",
+      "local_audit_file": "work/mini-review/Page.md",
+      "bytes": 18082,
+      "sha256": "cb2b353d5facf4bd03c554cb9ea4091fefbe7f4962545a6ba3ea4b3fb188efde"
+    },
+    {
+      "id": "wechat-request",
+      "url": "https://developers.weixin.qq.com/miniprogram/dev/api/network/request/wx.request.md",
+      "rehash_date": "2026-11-12",
+      "status": "existing official-source bytes rehashed, not a fresh HTTP download",
+      "local_audit_file": "work/mini-review/request.md",
+      "bytes": 20485,
+      "sha256": "3381725897fe86a45951f30a3675203d9bdcb82effa4b7eed6f54c834e89c6dc"
+    },
+    {
+      "id": "korvo-schematic-rehash",
+      "url": "https://dl.espressif.com/schematics/esp32-s31-korvo-1-schematics.pdf",
+      "rehash_date": "2026-11-12",
+      "status": "existing official-source bytes rehashed, not a fresh HTTP download",
+      "local_audit_file": "work/hardware_sources/korvo-v1.1.pdf",
+      "bytes": 1694038,
+      "sha256": "6841cdb55bc4749376a4309365a0efeb45b2cb4cc882a48008bf592d029ae0ec"
+    },
+    {
+      "id": "bsp-usb-rehash",
+      "url": "https://raw.githubusercontent.com/espressif/esp-bsp/6db6acb86a7dd56d17bf42093d2119dd9b0c14f5/bsp/esp32_s31_korvo_1/src/bsp_usb.c",
+      "rehash_date": "2026-11-12",
+      "status": "existing official-source bytes rehashed, not a fresh HTTP download",
+      "local_audit_file": "work/hardware_sources/bsp-1.0.1/esp32_s31_korvo_1/src/bsp_usb.c",
+      "bytes": 1820,
+      "sha256": "7cb4047e02a090244f20ffdd25fe4f16bf269f9c478be0c36b8ce465d73a9742"
+    },
+    {
+      "id": "cp210x-driver-rehash",
+      "url": "https://raw.githubusercontent.com/espressif/esp-usb/ebfa6f84ee7c7c070dcc244c79573eeab228298e/host/class/cdc/usb_host_cp210x_vcp/include/usb/vcp_cp210x.h",
+      "rehash_date": "2026-11-12",
+      "status": "existing official-source bytes rehashed, not a fresh HTTP download",
+      "local_audit_file": "work/hardware_sources/cp210x-2.2.0/usb_host_cp210x_vcp/include/usb/vcp_cp210x.h",
+      "bytes": 998,
+      "sha256": "6aa5bf92b93715df723adcf9bdd2b150ea5519e5490654988fb53b0bba63401e"
+    },
+    {
+      "id": "idf-nvs-local-checkout",
+      "url": "https://github.com/espressif/esp-idf/blob/d35ea023029363d97c42565f85e0db23486f26b2/components/nvs_flash/include/nvs.h",
+      "checked_date": "2026-11-12",
+      "status": "local pinned official SDK header read",
+      "sdk_commit": "d35ea023029363d97c42565f85e0db23486f26b2",
+      "sha256": "50f8940b0cd1d1076feb12961dffcf0868932fc23436779a13f0fac739104532",
+      "bytes": 44815
+    },
+    {
+      "id": "rohm-bh1750-revd-distributor-mirror",
+      "url": "https://www.mouser.com/datasheet/2/348/bh1750fvi-e-186247.pdf",
+      "official_module_referral": "https://learn.adafruit.com/adafruit-bh1750-ambient-light-sensor/downloads",
+      "document_author": "ROHM Co., Ltd.",
+      "document_revision": "2011.11 Rev.D, Technical Note",
+      "checked_date": "2026-11-12",
+      "status": "original manufacturer-authored PDF read through browser; distributor mirror referred by module manufacturer",
+      "sha256": null,
+      "local_download": "timeout; no PDF bytes or local hash claimed",
+      "pages_checked": "printed 1,2,5,7,11,13; PDF has 21 total pages including appendices",
+      "facts_checked": [
+        "VCC operating 2.4..3.6V",
+        "ADDR low 0100011 = 0x23",
+        "0x20 one-time H-resolution",
+        "180ms maximum H-resolution wait",
+        "default MTreg69 lux conversion raw/1.2"
+      ],
+      "boundary": "ROHM-hosted links remain unavailable; not a claim of direct ROHM-site retrieval or physical sensor verification"
+    }
+  ],
+  "supplementary_reference_notes": [
+    {
+      "topic": "Python live_check.py standard library",
+      "checked_by": "root",
+      "review_method": "official web documentation read by root; no local download hash claimed",
+      "urls": [
+        "https://docs.python.org/3.11/library/json.html",
+        "https://docs.python.org/3.11/library/ipaddress.html",
+        "https://docs.python.org/3.11/library/urllib.request.html",
+        "https://docs.python.org/3.11/library/time.html#time.monotonic"
+      ],
+      "boundary": "project acceptance predicates and logging policy are engineering choices, not Python certification"
+    },
+    {
+      "topic": "ST device definitions",
+      "official_version": "STMicroelectronics/cmsis-device-f1 v4.3.5",
+      "annotated_tag_object": "e3b6d87e6f3e02d547d65bb2e630605bce5a94f7",
+      "checked_symbols": [
+        "USART1_IRQn=37",
+        "GPIOA_BASE=0x40010800",
+        "GPIOB_BASE=0x40010c00",
+        "USART1_BASE=0x40013800",
+        "RCC_BASE=0x40021000",
+        "TIM2_BASE=0x40000000",
+        "RCC APB2 enable positions",
+        "GCC startup SysTick/USART1 vector positions"
+      ],
+      "source_commit": "8a76309ed1250d817e9c888c4417171d2ba3ba63"
+    },
+    {
+      "topic": "ROHM BH1750 datasheet availability",
+      "results": "old entry HTTP 403; fscdn datasheet path HTTP 404",
+      "boundary": "Espressif official pinned BH1750 driver is a limited cross-check, not a newly obtained ROHM datasheet"
+    }
+  ]
+}

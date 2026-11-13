@@ -1,0 +1,6 @@
+{
+  "pages": ["pages/home/home"],
+  "window": { "navigationBarTitleText": "智能家居环境监测", "navigationBarBackgroundColor": "#10243a", "navigationBarTextStyle": "white" },
+  "networkTimeout": { "request": 2500 },
+  "style": "v2"
+}

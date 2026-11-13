@@ -1,0 +1,8 @@
+{
+  "name": "home-network-host-tests",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Host-only MQTT/phone client integration fixture, no hardware validation",
+  "scripts": { "test": "node integration.cjs" },
+  "dependencies": { "aedes": "0.51.3", "mqtt": "5.10.4" }
+}

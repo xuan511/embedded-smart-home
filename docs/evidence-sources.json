@@ -1,0 +1,53 @@
+{
+  "checked_date": "2026-10-27",
+  "idf_commit": "d35ea023029363d97c42565f85e0db23486f26b2",
+  "scope": "Official source provenance; not physical validation or Espressif certification",
+  "korvo_schematic": {
+    "url": "https://dl.espressif.com/schematics/esp32-s31-korvo-1-schematics.pdf",
+    "sha256": "6841cdb55bc4749376a4309365a0efeb45b2cb4cc882a48008bf592d029ae0ec",
+    "reviewed_pages": [
+      2,
+      3
+    ]
+  },
+  "published_packages": [
+    {
+      "registry": "https://components.espressif.com/components/espressif/esp32_s31_korvo_1/versions/1.0.1",
+      "source_commit": "6db6acb86a7dd56d17bf42093d2119dd9b0c14f5",
+      "source": "https://github.com/espressif/esp-bsp/tree/6db6acb86a7dd56d17bf42093d2119dd9b0c14f5/bsp/esp32_s31_korvo_1",
+      "archive_sha256": "36570abf3b96d6845e215a94887f08de49dfb9230aed7f0c9ee16b27fba4134c"
+    },
+    {
+      "registry": "https://components.espressif.com/components/espressif/usb/versions/1.6.0",
+      "source_commit": "630f1c4e61f71d62bb57ff1b840931da24c3329f",
+      "source": "https://github.com/espressif/esp-usb/tree/630f1c4e61f71d62bb57ff1b840931da24c3329f/host/usb",
+      "archive_sha256": "6b274bfdd6fcfe9985e49758d4fbc0b8c7bb79f6f29b98ee2d134591814057b2"
+    },
+    {
+      "registry": "https://components.espressif.com/components/espressif/usb_host_cdc_acm/versions/2.4.1",
+      "source_commit": "eb0f02163be96dfc753cf43d1207329e44f1ca60",
+      "source": "https://github.com/espressif/esp-usb/tree/eb0f02163be96dfc753cf43d1207329e44f1ca60/host/class/cdc/usb_host_cdc_acm",
+      "archive_sha256": "dc011a838e68954344510ca3278901d0609548484d97c19157f10a815227dee7"
+    },
+    {
+      "registry": "https://components.espressif.com/components/espressif/usb_host_cp210x_vcp/versions/2.2.0",
+      "source_commit": "ebfa6f84ee7c7c070dcc244c79573eeab228298e",
+      "source": "https://github.com/espressif/esp-usb/tree/ebfa6f84ee7c7c070dcc244c79573eeab228298e/host/class/cdc/usb_host_cp210x_vcp",
+      "archive_sha256": "f9cff381b2fa0a213697bd845491436bdf308b8ff70c4f48435861a5859c4a82"
+    }
+  ],
+  "hardware_validation": "NOT RUN",
+  "pinned_raw_vs_registry": [
+    {
+      "url": "https://raw.githubusercontent.com/espressif/esp-bsp/6db6acb86a7dd56d17bf42093d2119dd9b0c14f5/bsp/esp32_s31_korvo_1/src/bsp_usb.c",
+      "sha256": "7cb4047e02a090244f20ffdd25fe4f16bf269f9c478be0c36b8ce465d73a9742",
+      "byte_match": true
+    },
+    {
+      "url": "https://raw.githubusercontent.com/espressif/esp-usb/ebfa6f84ee7c7c070dcc244c79573eeab228298e/host/class/cdc/usb_host_cp210x_vcp/include/usb/vcp_cp210x.h",
+      "sha256": "6aa5bf92b93715df723adcf9bdd2b150ea5519e5490654988fb53b0bba63401e",
+      "byte_match": true
+    }
+  ],
+  "bh1750_reference_commit": "7a813417274c663226601f390668b9c8e5eec768"
+}

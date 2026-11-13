@@ -1,0 +1,219 @@
+{
+  "checked_date": "2026-11-12",
+  "reviewed_project_baseline": "a1300beab0b657015b31e53b0b1566e9bb124dbb",
+  "purpose": "Open-source pattern review, not hardware certification or SDK migration",
+  "source_retrieval": "GitHub connector read of exact UTF-8 files at pinned commits. No HTTP-byte SHA256 is claimed.",
+  "third_party_source_imported": false,
+  "hardware_verified": false,
+  "projects": [
+    {
+      "id": "esp-idf",
+      "repo": "espressif/esp-idf",
+      "sha": "d35ea023029363d97c42565f85e0db23486f26b2",
+      "files": [
+        "idf-wifi",
+        "idf-cdc-example",
+        "idf-license"
+      ],
+      "licenses": [
+        "Repository: Apache-2.0",
+        "Reviewed Wi-Fi station example: Public Domain or CC0",
+        "Reviewed CDC example: CC0-1.0"
+      ],
+      "mode": "API usage and event/state patterns reviewed; no wholesale source import",
+      "repository_url": "https://github.com/espressif/esp-idf",
+      "reviewed_files": [
+        {
+          "id": "idf-wifi",
+          "url": "https://raw.githubusercontent.com/espressif/esp-idf/d35ea023029363d97c42565f85e0db23486f26b2/examples/wifi/getting_started/station/main/station_example_main.c",
+          "retrieved": true,
+          "utf8_text_characters": 7473
+        },
+        {
+          "id": "idf-cdc-example",
+          "url": "https://raw.githubusercontent.com/espressif/esp-idf/d35ea023029363d97c42565f85e0db23486f26b2/examples/peripherals/usb/host/cdc/main/usb_cdc_example_main.c",
+          "retrieved": true,
+          "utf8_text_characters": 12864
+        },
+        {
+          "id": "idf-license",
+          "url": "https://raw.githubusercontent.com/espressif/esp-idf/d35ea023029363d97c42565f85e0db23486f26b2/LICENSE",
+          "retrieved": true,
+          "utf8_text_characters": 11358
+        }
+      ]
+    },
+    {
+      "id": "esp-usb",
+      "repo": "espressif/esp-usb",
+      "sha": "ebfa6f84ee7c7c070dcc244c79573eeab228298e",
+      "files": [
+        "usb-cp",
+        "usb-comp-license"
+      ],
+      "licenses": [
+        "Reviewed CP210x component: Apache-2.0 (file SPDX and component LICENSE)"
+      ],
+      "mode": "Existing managed dependency retained at 2.2.0; no new driver family or copied source",
+      "repository_url": "https://github.com/espressif/esp-usb",
+      "reviewed_files": [
+        {
+          "id": "usb-cp",
+          "url": "https://raw.githubusercontent.com/espressif/esp-usb/ebfa6f84ee7c7c070dcc244c79573eeab228298e/host/class/cdc/usb_host_cp210x_vcp/include/usb/vcp_cp210x.h",
+          "retrieved": true,
+          "utf8_text_characters": 998
+        },
+        {
+          "id": "usb-comp-license",
+          "url": "https://raw.githubusercontent.com/espressif/esp-usb/ebfa6f84ee7c7c070dcc244c79573eeab228298e/host/class/cdc/usb_host_cp210x_vcp/LICENSE",
+          "retrieved": true,
+          "utf8_text_characters": 11358
+        }
+      ]
+    },
+    {
+      "id": "esp-iot-solution",
+      "repo": "espressif/esp-iot-solution",
+      "sha": "7a813417274c663226601f390668b9c8e5eec768",
+      "files": [
+        "iot-bh",
+        "iot-license"
+      ],
+      "licenses": [
+        "Apache-2.0"
+      ],
+      "mode": "Command/timing/conversion cross-check; no ESP I2C or RTOS port copied into STM32",
+      "repository_url": "https://github.com/espressif/esp-iot-solution",
+      "reviewed_files": [
+        {
+          "id": "iot-bh",
+          "url": "https://raw.githubusercontent.com/espressif/esp-iot-solution/7a813417274c663226601f390668b9c8e5eec768/components/sensors/light_sensor/bh1750/bh1750.c",
+          "retrieved": true,
+          "utf8_text_characters": 5155
+        },
+        {
+          "id": "iot-license",
+          "url": "https://raw.githubusercontent.com/espressif/esp-iot-solution/7a813417274c663226601f390668b9c8e5eec768/LICENSE",
+          "retrieved": true,
+          "utf8_text_characters": 11358
+        }
+      ]
+    },
+    {
+      "id": "esp-mqtt",
+      "repo": "espressif/esp-mqtt",
+      "sha": "2c3e1e0942afcc5b3cea2710ffe220fe699da02a",
+      "files": [
+        "mqtt-tcp-example",
+        "mqtt-main",
+        "mqtt-license"
+      ],
+      "licenses": [
+        "Library: Apache-2.0",
+        "Reviewed TCP example: Public Domain or CC0"
+      ],
+      "mode": "Event/error layering reviewed for local diagnostics; MQTT upload-only design retained",
+      "repository_url": "https://github.com/espressif/esp-mqtt",
+      "reviewed_files": [
+        {
+          "id": "mqtt-tcp-example",
+          "url": "https://raw.githubusercontent.com/espressif/esp-mqtt/2c3e1e0942afcc5b3cea2710ffe220fe699da02a/examples/tcp/main/app_main.c",
+          "retrieved": true,
+          "utf8_text_characters": 6025
+        },
+        {
+          "id": "mqtt-main",
+          "url": "https://raw.githubusercontent.com/espressif/esp-mqtt/2c3e1e0942afcc5b3cea2710ffe220fe699da02a/mqtt_client.c",
+          "retrieved": true,
+          "utf8_text_characters": 99989
+        },
+        {
+          "id": "mqtt-license",
+          "url": "https://raw.githubusercontent.com/espressif/esp-mqtt/2c3e1e0942afcc5b3cea2710ffe220fe699da02a/LICENSE",
+          "retrieved": true,
+          "utf8_text_characters": 11339
+        }
+      ]
+    },
+    {
+      "id": "sensirion",
+      "repo": "Sensirion/embedded-sht",
+      "sha": "94967774f25985bf65356bad3689fec4e8fef2b8",
+      "files": [
+        "sensirion-sht",
+        "sensirion-license"
+      ],
+      "licenses": [
+        "BSD-3-Clause"
+      ],
+      "mode": "Manufacturer C driver command/read-result separation reviewed; no platform HAL copied",
+      "repository_url": "https://github.com/Sensirion/embedded-sht",
+      "reviewed_files": [
+        {
+          "id": "sensirion-sht",
+          "url": "https://raw.githubusercontent.com/Sensirion/embedded-sht/94967774f25985bf65356bad3689fec4e8fef2b8/sht3x/sht3x.c",
+          "retrieved": true,
+          "utf8_text_characters": 9315
+        },
+        {
+          "id": "sensirion-license",
+          "url": "https://raw.githubusercontent.com/Sensirion/embedded-sht/94967774f25985bf65356bad3689fec4e8fef2b8/LICENSE",
+          "retrieved": true,
+          "utf8_text_characters": 1512
+        }
+      ]
+    },
+    {
+      "id": "esphome",
+      "repo": "esphome/esphome",
+      "sha": "0240f570699283f2fa3b30211b5f3caded261335",
+      "files": [
+        "esphome-bh",
+        "esphome-sht",
+        "esphome-license"
+      ],
+      "licenses": [
+        "Runtime C/C++: GPL-3.0; Python/other portions: MIT, per repository LICENSE"
+      ],
+      "mode": "Failure-visible readings and staged measurement patterns only; no runtime source copied",
+      "repository_url": "https://github.com/esphome/esphome",
+      "reviewed_files": [
+        {
+          "id": "esphome-bh",
+          "url": "https://raw.githubusercontent.com/esphome/esphome/0240f570699283f2fa3b30211b5f3caded261335/esphome/components/bh1750/bh1750.cpp",
+          "retrieved": true,
+          "utf8_text_characters": 8276
+        },
+        {
+          "id": "esphome-sht",
+          "url": "https://raw.githubusercontent.com/esphome/esphome/0240f570699283f2fa3b30211b5f3caded261335/esphome/components/sht3xd/sht3xd.cpp",
+          "retrieved": true,
+          "utf8_text_characters": 3316
+        },
+        {
+          "id": "esphome-license",
+          "url": "https://raw.githubusercontent.com/esphome/esphome/0240f570699283f2fa3b30211b5f3caded261335/LICENSE",
+          "retrieved": true,
+          "utf8_text_characters": 36664
+        }
+      ]
+    }
+  ],
+  "failed_lookups": [
+    {
+      "url": "https://raw.githubusercontent.com/espressif/esp-usb/ebfa6f84ee7c7c070dcc244c79573eeab228298e/LICENSE",
+      "result": "No root LICENSE returned; component-local LICENSE and file SPDX successfully reviewed instead"
+    },
+    {
+      "url": "https://api.github.com/repos/Sensirion/embedded-sht3x/commits/master",
+      "result": "Requested old repository name did not yield content; canonical Sensirion/embedded-sht resolved and reviewed"
+    }
+  ],
+  "boundaries": [
+    "Source project behavior is not proof of this board's wiring or physical test result.",
+    "GPIO, voltage, sensor commands and timing remain tied to manufacturer documents in OFFICIAL_REFERENCE.md.",
+    "Baseline patterns already implemented are identified as retained/cross-checked, not retroactively claimed to be new source imports.",
+    "Any new network diagnostic fields must be validated by current code tests and exact-commit CI."
+  ],
+  "integration_review_date": "2026-11-13"
+}
