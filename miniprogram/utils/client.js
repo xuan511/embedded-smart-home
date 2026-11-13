@@ -47,8 +47,25 @@ function displayState(s) {
     temperature: reading(s.temperature_c, ' ℃', s.temperature_fault), humidity: reading(s.humidity_pct, ' %', s.humidity_fault),
     light: reading(s.illuminance_lux, ' lx', s.light_fault), fan: output(s.fan_on), lamp: output(s.light_on),
     source: s.source === 'sensor' ? '真实传感器' : s.source === 'test' ? '测试数据' : s.source === 'simulation' ? '离线模拟' : '无数据',
-    mode: s.mode === 'auto' ? '自动' : s.mode === 'manual' ? '手动' : '未知'
+    mode: s.mode === 'auto' ? '自动' : s.mode === 'manual' ? '手动' : '未知',
+    networkHint: networkDiagnostic(s)
   }
+}
+
+function networkDiagnostic(s) {
+  const hints = {
+    network_not_configured: '网络未启用或未配置，请检查 Korvo menuconfig',
+    network_start_failed: '网络启动失败，请在串口执行 net status 查看错误码',
+    wifi_disconnected: 'Wi-Fi 未就绪，请检查 SSID、认证、路由器和信号',
+    mqtt_disabled: 'MQTT 未配置，局域网手机控制仍可使用',
+    mqtt_connecting: '正在连接 MQTT，请检查电脑 Broker 地址与服务',
+    mqtt_transport_error: 'MQTT 传输失败，请检查电脑 IP、1883 端口、Broker 和防火墙',
+    mqtt_broker_refused: 'Broker 拒绝连接，请核对协议、设备 ID 和 Broker 日志',
+    mqtt_auth_rejected: 'Broker 拒绝认证或授权，请核对账户及 Broker 策略',
+    mqtt_error: 'MQTT 发生错误，请查看 net status 和 Broker 日志',
+    online: 'Wi-Fi 与 MQTT 已连接；USB 和传感器有效性需分别检查'
+  }
+  return hints[s.network_hint] || '未提供联网诊断；可在 Korvo 串口执行 net status'
 }
 
 // This is our schema-1 payload contract, not a guarantee made by wx.request.
@@ -94,4 +111,4 @@ function ageState(snapshot, elapsedMs) {
   if (s.stale) s.temperature_c = s.humidity_pct = s.illuminance_lux = null
   return s
 }
-module.exports = { createClient, lanAddress, displayState, ageState, validState }
+module.exports = { createClient, lanAddress, displayState, ageState, validState, networkDiagnostic }

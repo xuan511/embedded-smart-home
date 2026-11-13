@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: MIT
 #include "home_network.h"
+#include "home_gateway.h"
 #include "sdkconfig.h"
 #include <stdio.h>
 #include <string.h>
@@ -17,7 +18,6 @@ void home_network_snapshot(home_network_state_t *out)
 
 #if CONFIG_HOME_NETWORK
 #include "home_service.h"
-#include "home_gateway.h"
 #include "esp_check.h"
 #include "esp_event.h"
 #include "esp_http_server.h"
@@ -102,11 +102,42 @@ static esp_err_t post_control(httpd_req_t *req)
 
 static void mqtt_event(void *arg, esp_event_base_t base, int32_t id, void *data)
 {
-    (void)arg; (void)base; (void)data;
-    if (id == MQTT_EVENT_CONNECTED || id == MQTT_EVENT_DISCONNECTED) {
-        portENTER_CRITICAL(&state_lock); state.mqtt = id == MQTT_EVENT_CONNECTED; portEXIT_CRITICAL(&state_lock);
-        if (id == MQTT_EVENT_CONNECTED)
-            esp_mqtt_client_publish(mqtt, topic_availability, "online", 0, 1, true);
+    (void)arg; (void)base;
+    const esp_mqtt_event_t *event = data;
+    if (id == MQTT_EVENT_CONNECTED) {
+        portENTER_CRITICAL(&state_lock);
+        state.mqtt = true; state.mqtt_failure = HOME_MQTT_FAILURE_NONE;
+        portEXIT_CRITICAL(&state_lock);
+        esp_mqtt_client_publish(mqtt, topic_availability, "online", 0, 1, true);
+    } else if (id == MQTT_EVENT_DISCONNECTED) {
+        portENTER_CRITICAL(&state_lock);
+        state.mqtt = false; ++state.mqtt_disconnect_events;
+        portEXIT_CRITICAL(&state_lock);
+    } else if (id == MQTT_EVENT_ERROR) {
+        // ESP-MQTT 1.0.0: inspect error_type before reading its related fields.
+        // Copy numbers during the callback; never retain error_handle pointers.
+        int type = 0, code = 0, esp_error = 0, socket_error = 0;
+        home_mqtt_failure_t failure = HOME_MQTT_FAILURE_OTHER;
+        if (event && event->error_handle) {
+            const esp_mqtt_error_codes_t *error = event->error_handle;
+            type = error->error_type;
+            if (type == MQTT_ERROR_TYPE_TCP_TRANSPORT) {
+                failure = HOME_MQTT_FAILURE_TRANSPORT;
+                esp_error = error->esp_tls_last_esp_err;
+                socket_error = error->esp_transport_sock_errno;
+            } else if (type == MQTT_ERROR_TYPE_CONNECTION_REFUSED) {
+                code = error->connect_return_code;
+                failure = code == MQTT_CONNECTION_REFUSE_BAD_USERNAME || code == MQTT_CONNECTION_REFUSE_NOT_AUTHORIZED
+                    ? HOME_MQTT_FAILURE_AUTH : HOME_MQTT_FAILURE_REFUSED;
+            }
+        }
+        portENTER_CRITICAL(&state_lock);
+        state.mqtt = false; state.mqtt_failure = failure;
+        state.last_mqtt_type = type; state.last_mqtt_code = code;
+        state.last_mqtt_esp_error = esp_error; state.last_mqtt_socket_errno = socket_error;
+        portEXIT_CRITICAL(&state_lock);
+        ESP_LOGW(TAG, "MQTT error type=%d code=%d esp=%d errno=%d; net status for next checks",
+            type, code, esp_error, socket_error);
     }
 }
 
@@ -115,9 +146,13 @@ static void wifi_event(void *arg, esp_event_base_t base, int32_t id, void *data)
     (void)arg;
     if (base == WIFI_EVENT && id == WIFI_EVENT_STA_START) esp_wifi_connect();
     if (base == WIFI_EVENT && id == WIFI_EVENT_STA_DISCONNECTED) {
+        const wifi_event_sta_disconnected_t *event = data;
+        int reason = event ? event->reason : 0;
         portENTER_CRITICAL(&state_lock);
         state.wifi = state.mqtt = false; strcpy(state.ip, "0.0.0.0");
+        state.last_wifi_reason = reason; ++state.wifi_disconnect_events;
         portEXIT_CRITICAL(&state_lock);
+        ESP_LOGW(TAG, "Wi-Fi disconnected reason=%d; check SSID/authentication/AP/signal; retrying", reason);
         esp_wifi_connect(); // ESP driver schedules connection; never block controller/UI.
     }
     if (base == IP_EVENT && id == IP_EVENT_STA_GOT_IP) {
@@ -146,7 +181,7 @@ static void upload_task(void *arg)
     }
 }
 
-esp_err_t home_network_start(void)
+static esp_err_t start_network(void)
 {
     if (!strlen(CONFIG_HOME_WIFI_SSID)) { ESP_LOGI(TAG, "Wi-Fi not configured; local LCD/USB only"); return ESP_OK; }
     size_t token_length = strlen(CONFIG_HOME_API_TOKEN);
@@ -210,8 +245,21 @@ esp_err_t home_network_start(void)
     return ESP_OK;
 }
 #else
-esp_err_t home_network_start(void) { return ESP_OK; }
+static esp_err_t start_network(void) { return ESP_OK; }
 #endif
+
+esp_err_t home_network_start(void)
+{
+#if CONFIG_HOME_NETWORK
+    portENTER_CRITICAL(&state_lock);
+    state.wifi_configured = strlen(CONFIG_HOME_WIFI_SSID) != 0;
+    state.mqtt_configured = strlen(CONFIG_HOME_MQTT_URI) != 0;
+    portEXIT_CRITICAL(&state_lock);
+#endif
+    esp_err_t err = start_network();
+    portENTER_CRITICAL(&state_lock); state.start_error = err; portEXIT_CRITICAL(&state_lock);
+    return err;
+}
 
 static int net_command(int argc, char **argv)
 {
@@ -219,6 +267,12 @@ static int net_command(int argc, char **argv)
     home_network_state_t net; home_network_snapshot(&net);
     printf("Network enabled=%d WiFi=%d IP=%s API=%d MQTT=%d; token/credentials never printed\n",
         net.enabled, net.wifi, net.ip, net.api, net.mqtt);
+    printf("Hint=%s start_error=%s | last WiFi reason=%d events=%lu\n",
+        home_network_hint(&net), esp_err_to_name(net.start_error), net.last_wifi_reason,
+        (unsigned long)net.wifi_disconnect_events);
+    printf("Last MQTT type=%d code=%d esp=%d errno=%d events=%lu (historical; current status above)\n",
+        net.last_mqtt_type, net.last_mqtt_code, net.last_mqtt_esp_error,
+        net.last_mqtt_socket_errno, (unsigned long)net.mqtt_disconnect_events);
     return 0;
 }
 esp_err_t home_network_console_register(void)

@@ -16,6 +16,7 @@
       <view>USB：{{state.online ? '在线' : '断开'}} · 数据：{{state.stale ? '已过期' : '有效'}} · {{state.sample_age_ms}} ms</view>
       <view>模式：{{display.mode}} · 灯：{{display.lamp}} · 风扇：{{display.fan}}</view>
       <view>参数：{{state.synced ? '已同步' : '待同步'}} · MQTT：{{state.mqtt ? '已连接' : '断开/未启用'}} · SD：{{state.sd_ok ? '就绪' : '未启用/故障'}}</view>
+      <view class="hint">联网提示：{{display.networkHint}}</view>
       <view class="hint">输出为 STM32 回报的控制状态；没有转速/电流反馈，实际运行须现场观察。</view>
     </block>
   </view>

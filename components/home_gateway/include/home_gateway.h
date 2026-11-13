@@ -11,3 +11,6 @@ bool home_api_decode(const char *body, size_t size, const home_config_t *current
 bool home_api_encode(const home_snapshot_t *view, const home_network_state_t *net,
                      char *out, size_t capacity);
 const char *home_result_name(home_result_t result);
+// Stable project hint keys. Historical raw codes do not override a current
+// connected state; messages suggest checks rather than claiming a root cause.
+const char *home_network_hint(const home_network_state_t *state);

@@ -1,5 +1,15 @@
 # 验证记录 / Validation record
 
+## 2026-11-13 开源对照、联网诊断与从零行动清单
+
+在 `a1300be` 上继续开发。实际对照六个作者仓库的固定文件与许可证，来源/采用的模式/不照搬的引脚和平台见 [OPEN_SOURCE_REFERENCES](OPEN_SOURCE_REFERENCES.md) 和 manifest；保留固定 SDK/BSP 与单一 STM32 构建方式，没有导入第三方项目代码或新运行平台。
+
+新增 Wi-Fi 最近断线原因、MQTT 传输错误/连接拒绝/认证拒绝分层、原始数字码与事件计数；串口、JSON、LCD 和手机共用提示。MQTT 错误回调按 error_type 只复制相关整数，不保留 SDK 指针；恢复连接后当前 online 优先于历史错误。错误提示是检查方向，不声称自动定位具体密码或硬件问题。真实 ESP Wi-Fi/MQTT 事件运行仍未验证。
+
+主机测试实际通过网络提示优先级、未配置/连接中/错误/恢复、数字码保留与最大状态 JSON（维持 2048-byte 上限）。手机增加相应提示测试。六套 C、8 个 Python、页面回归与本机 MQTT 集成沿用并重新运行；准确固件/CI结果以本轮提交的 [PR checks](https://github.com/xuan511/embedded-smart-home/pull/1/checks) 为准，不用旧提交替代新构建结果。
+
+新增 [START_HERE](START_HERE.zh-CN.md)，按用户要求当前先做离线环境、构建与主机测试；板型、VID/PID、供电确认后置到实物接线/烧录前。所有真机项目仍为 NOT RUN，行动清单中的预期现象不是已观察结果。
+
 ## 2026-11-12 教程与可靠性复核 / Beginner documentation and reliability review
 
 本轮在 `a2cb09e` 上继续开发。该基线的 [六项 CI](https://github.com/xuan511/embedded-smart-home/actions/runs/43064970263) 已实际通过（ESP 默认/SD/模拟/完整网络配置、STM32 四阶段、主机测试），此处只作为基线记录，不替代下面修订的准确提交 checks。

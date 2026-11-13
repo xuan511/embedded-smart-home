@@ -75,6 +75,25 @@ idf.py --preview -p COM5 flash monitor
 
 COM5 替换成 Korvo **UART Type-C** 的端口；USB-A 留给 CP2102N。启动日志和 LCD 应显示取得的 IP；`net status` 显示 Wi-Fi/API/MQTT 状态，不输出密码/令牌。SSID 非空但令牌不合规时网络拒绝启动并报错。`home test wifi` 在网络启用后会拒绝扫描自检，避免停止正在工作的 Wi-Fi。
 
+### 按新诊断提示逐层检查
+
+本轮参考固定的乐鑫 Wi-Fi/MQTT 开源示例处理事件，保留原始错误数字；参考版本及许可证见 [OPEN_SOURCE_REFERENCES](OPEN_SOURCE_REFERENCES.md)。提示是排查方向，不是对根因的自动断言。LCD 显示 `Net: <key>`，手机提供中文说明；更多数字在串口 `net status` 与状态 JSON 中。
+
+| network_hint | 先检查什么 |
+| --- | --- |
+| `network_not_configured` | 网络是否启用，是否填 SSID；按 menuconfig 保存、构建并重启 |
+| `network_start_failed` | `net status` 的 start_error；可能是配置或初始化错误，保留完整启动日志 |
+| `wifi_disconnected` | SSID、认证设置、路由器与信号；结合 last_wifi_reason 查固定 SDK 定义，不能只凭一个码断言密码错误 |
+| `mqtt_disabled` | URI 留空有意关闭上传；LAN 手机接口可独立使用 |
+| `mqtt_connecting` | Broker 进程是否启动、IP 是否为电脑真实内网地址 |
+| `mqtt_transport_error` | 电脑 IP、1883、Broker 监听与 Windows 防火墙；结合 last_mqtt_esp_error / last_mqtt_errno 与 Broker 日志 |
+| `mqtt_auth_rejected` | Broker 返回拒绝认证/授权；核对账号和 Broker 策略，不在日志中公开凭据 |
+| `mqtt_broker_refused` | Broker 还可能因协议、Client ID 或服务状态拒绝；查 last_mqtt_code 和 Broker 日志 |
+| `mqtt_error` | 未识别/其他错误：保存类型码和对应时间，不编造解释 |
+| `online` | Wi-Fi 与 MQTT 当前都连接；USB、synced 和传感器有效性仍分别检查 |
+
+`last_wifi_reason`、`last_mqtt_type/code/esp_error/errno` 是**最近一次历史事件**，重连后可保留，不能据非零历史码判定当前仍出错。当前布尔状态和 network_hint 优先；事件计数 `wifi_disconnect_events`、`mqtt_disconnect_events` 计回调事件，不是精确测得的无线掉线次数。MQTT 回调内只复制与 error_type 对应的数值，不保留 SDK 指针，也不在错误回调里 stop/destroy 或阻塞式重启服务。实际网络事件仍需上板复验。
+
 STM32 先完成原 [阶段 ①～⑤](ACCEPTANCE.md)，实际演示使用 `-DSTAGE=4`；阶段 2 只有明确标记的测试数值和 LED，阶段 3 仍不驱动风扇。网络功能不改变这些限制。
 
 ## 微信开发者工具与手机

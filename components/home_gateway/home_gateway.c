@@ -12,6 +12,22 @@ const char *home_result_name(home_result_t result)
     return (unsigned)result < sizeof(names) / sizeof(names[0]) ? names[result] : "unknown";
 }
 
+const char *home_network_hint(const home_network_state_t *s)
+{
+    if (s->start_error) return "network_start_failed";
+    if (!s->enabled || !s->wifi_configured) return "network_not_configured";
+    if (!s->wifi) return "wifi_disconnected";
+    if (!s->mqtt_configured) return "mqtt_disabled";
+    if (s->mqtt) return "online";
+    switch (s->mqtt_failure) {
+    case HOME_MQTT_FAILURE_AUTH: return "mqtt_auth_rejected";
+    case HOME_MQTT_FAILURE_REFUSED: return "mqtt_broker_refused";
+    case HOME_MQTT_FAILURE_TRANSPORT: return "mqtt_transport_error";
+    case HOME_MQTT_FAILURE_OTHER: return "mqtt_error";
+    default: return "mqtt_connecting";
+    }
+}
+
 static bool keys(const cJSON *object, const char *const *allowed, size_t count)
 {
     size_t found = 0;
@@ -122,6 +138,12 @@ bool home_api_encode(const home_snapshot_t *v, const home_network_state_t *net,
     NUM("rejected_id", v->rejected_id);
     NUM("stm32_result", v->stm32_result); STR("request_status", v->request_status);
     BOOL("wifi", net->wifi); BOOL("mqtt", net->mqtt); STR("ip", net->ip);
+    BOOL("wifi_configured", net->wifi_configured); BOOL("mqtt_configured", net->mqtt_configured);
+    STR("network_hint", home_network_hint(net)); NUM("network_error", net->start_error);
+    NUM("last_wifi_reason", net->last_wifi_reason);
+    NUM("last_mqtt_type", net->last_mqtt_type); NUM("last_mqtt_code", net->last_mqtt_code);
+    NUM("last_mqtt_esp_error", net->last_mqtt_esp_error); NUM("last_mqtt_errno", net->last_mqtt_socket_errno);
+    NUM("wifi_disconnect_events", net->wifi_disconnect_events); NUM("mqtt_disconnect_events", net->mqtt_disconnect_events);
     ok = ok && cJSON_PrintPreallocated(j, out, (int)capacity, false);
     cJSON_Delete(j);
     return ok;

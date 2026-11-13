@@ -2,7 +2,7 @@
 
 [English](README.en.md) | 中文
 
-**零基础先读：[完整入门教程](docs/BEGINNER_GUIDE.zh-CN.md)。** 从认识接口、打开 PowerShell、安装、编译、分别烧录到逐步接线、MQTT 和手机预览，每阶段都有成功门槛与排错。[文档导航](docs/README.md)提供阅读顺序，[官方手册对应表](docs/OFFICIAL_REFERENCE.md)说明每项硬件/驱动事实的出处，[毕设实施与实验记录](docs/PROJECT_GUIDE.zh-CN.md)用于准备演示和保留真实结果。
+**零基础先读：[从这里开始的行动清单](docs/START_HERE.zh-CN.md)，再按当前关口查 [14 章完整教程](docs/BEGINNER_GUIDE.zh-CN.md)。** 从认识接口、打开 PowerShell、安装、编译、分别烧录到逐步接线、MQTT 和手机预览，每阶段都有成功门槛与排错。[文档导航](docs/README.md)提供阅读顺序，[官方手册对应表](docs/OFFICIAL_REFERENCE.md)说明器件事实出处，[开源项目对照](docs/OPEN_SOURCE_REFERENCES.md)记录参考代码与许可证，[毕设实施与实验记录](docs/PROJECT_GUIDE.zh-CN.md)用于准备演示和保留真实结果。
 
 《智能家居环境监测与控制系统的设计与实现》双板工程。目标是完成一次真实的 **采集 → LCD/手机显示 → 触摸/串口/微信小程序操作 → 执行 → 状态返回 → MQTT 上传** 演示，优先保持接线和代码简单。
 

@@ -2,6 +2,7 @@
 #include "home_gateway.h"
 #include "cJSON.h"
 #include <assert.h>
+#include <limits.h>
 #include <stdio.h>
 #include <string.h>
 
@@ -56,6 +57,39 @@ int main(void)
     assert(cJSON_GetObjectItem(j, "temperature_c")->valuedouble == 31);
     assert(!strcmp(cJSON_GetObjectItem(j, "source")->valuestring, "test"));
     assert(cJSON_IsTrue(cJSON_GetObjectItem(j, "fan_on"))); cJSON_Delete(j);
+    assert(!strcmp(home_network_hint(&net), "network_not_configured"));
+    net.start_error = 123;
+    assert(!strcmp(home_network_hint(&net), "network_start_failed"));
+    net.start_error = 0; net.enabled = net.wifi_configured = true;
+    net.last_wifi_reason = 201;
+    assert(!strcmp(home_network_hint(&net), "wifi_disconnected"));
+    net.wifi = true;
+    assert(!strcmp(home_network_hint(&net), "mqtt_disabled"));
+    net.mqtt_configured = true;
+    assert(!strcmp(home_network_hint(&net), "mqtt_connecting"));
+    net.mqtt_failure = HOME_MQTT_FAILURE_TRANSPORT;
+    assert(!strcmp(home_network_hint(&net), "mqtt_transport_error"));
+    net.mqtt_failure = HOME_MQTT_FAILURE_REFUSED;
+    assert(!strcmp(home_network_hint(&net), "mqtt_broker_refused"));
+    net.mqtt_failure = HOME_MQTT_FAILURE_AUTH;
+    assert(!strcmp(home_network_hint(&net), "mqtt_auth_rejected"));
+    net.mqtt = true;
+    // Historical errors must not show an active failure after recovery.
+    assert(!strcmp(home_network_hint(&net), "online"));
+    net.last_mqtt_type = INT_MAX; net.last_mqtt_code = INT_MAX;
+    net.last_mqtt_esp_error = INT_MIN; net.last_mqtt_socket_errno = INT_MAX;
+    net.wifi_disconnect_events = net.mqtt_disconnect_events = UINT32_MAX;
+    view.uptime_ms = UINT64_MAX; view.request_id = view.rejected_id = UINT32_MAX;
+    view.link_age_ms = view.sample_age_ms = UINT32_MAX;
+    memset(view.request_status, '"', sizeof(view.request_status) - 1);
+    view.request_status[sizeof(view.request_status) - 1] = 0;
+    strcpy(net.ip, "192.168.255.254");
+    assert(home_api_encode(&view, &net, out, sizeof(out)));
+    j = cJSON_Parse(out); assert(j);
+    assert(!strcmp(cJSON_GetObjectItem(j, "network_hint")->valuestring, "online"));
+    assert(cJSON_GetObjectItem(j, "last_wifi_reason")->valueint == 201);
+    assert(cJSON_IsTrue(cJSON_GetObjectItem(j, "mqtt_configured"))); cJSON_Delete(j);
     puts("PASS: phone JSON validation, thresholds, duplicate keys, overflow, stale/null outputs and no feedback claim");
+    puts("PASS: network diagnostic precedence, disabled/connecting/error/recovery and maximum-size JSON");
     return 0;
 }

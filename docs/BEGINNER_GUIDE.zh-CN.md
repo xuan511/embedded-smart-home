@@ -2,6 +2,8 @@
 
 本教程只走一条路线：**先让 Korvo 与 STM32 通信，再接传感器，再接灯和风扇，最后加 MQTT 与微信小程序。** 每一步都能单独检查，遇到问题停在当前步，不把全部外设一次接上。
 
+**目前先准备纯软件，不需要现在提供硬件身份信息。** 先看[行动清单](START_HERE.zh-CN.md)，然后阅读本教程第 3～4 节安装环境，执行构建与可选主机测试。第 2 节的板型/模块/供电核对留到实际接线和烧录前集中处理；离线编译不能据此确认任何实物接法。
+
 教程核对基线：ESP32-S31-Korvo-1 V1.1、原配 LCD/触摸、ESP-IDF `d35ea023029363d97c42565f85e0db23486f26b2`、BSP 1.0.1、STM32F103C8T6。目标是 `esp32s31`，不是 `esp32s3`；屏幕子板名称中出现 S3，也不能据此改变主控编译目标。依据见[本板官方指南](https://docs.espressif.com/projects/esp-dev-kits/en/latest/esp32s31/esp32-s31-korvo-1/user_guide.html)、[固定 SDK](https://github.com/espressif/esp-idf/tree/d35ea023029363d97c42565f85e0db23486f26b2)。
 
 **本教程不是已经做过的实验记录。** 当前实物 USB、传感器、风扇、LCD/触摸、NVS 掉电与微信手机预览均未验证。文中的“应看到”是验收预期，只有你上板观察并留下记录后，才能填真机 PASS。已有编译/主机测试记录见 [VALIDATION](VALIDATION.md)。

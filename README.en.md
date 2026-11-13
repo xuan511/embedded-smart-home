@@ -4,6 +4,8 @@ English | [中文](README.md)
 
 For a detailed first-time path, see the [Chinese beginner tutorial](docs/BEGINNER_GUIDE.zh-CN.md) and [documentation index](docs/README.md). The [official reference map](docs/OFFICIAL_REFERENCE.md) separates manufacturer facts from project design; the [project/experiment guide](docs/PROJECT_GUIDE.zh-CN.md) provides demonstration and evidence templates.
 
+Start with the [step-by-step action checklist](docs/START_HERE.zh-CN.md) to identify your current hardware gate. The [open-source comparison](docs/OPEN_SOURCE_REFERENCES.md) records pinned examples, licenses, adopted patterns and limits. Wi-Fi/MQTT diagnostics now report separate startup, disconnect, transport and broker-rejection information without logging credentials.
+
 A two-board graduation project for **Design and Implementation of a Smart Home Environmental Monitoring and Control System**. The goal is a real demonstration: **measure → LCD/phone display → operate → actuate → return status → MQTT upload**, with simple wiring and understandable code.
 
 **2026-11-12 network extension:** Wi-Fi, MQTT telemetry and an authenticated same-subnet WeChat mini program are implemented. See the bilingual [network setup and acceptance guide](docs/NETWORK.md). The selected USB-UART connection, STM32 automation and preserved LCD/SD wiring remain unchanged. Code, builds, host fixtures and physical verification are reported separately.

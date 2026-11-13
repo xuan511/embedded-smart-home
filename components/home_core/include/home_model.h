@@ -32,7 +32,17 @@ typedef struct {
     char request_status[96];
 } home_snapshot_t;
 
+// Project-level diagnostic groups; SDK error/reason values remain separate.
+typedef enum {
+    HOME_MQTT_FAILURE_NONE, HOME_MQTT_FAILURE_TRANSPORT,
+    HOME_MQTT_FAILURE_REFUSED, HOME_MQTT_FAILURE_AUTH, HOME_MQTT_FAILURE_OTHER
+} home_mqtt_failure_t;
+
 typedef struct {
-    bool enabled, wifi, mqtt, api;
+    bool enabled, wifi, mqtt, api, wifi_configured, mqtt_configured;
     char ip[16];
+    int start_error, last_wifi_reason;
+    int last_mqtt_type, last_mqtt_code, last_mqtt_esp_error, last_mqtt_socket_errno;
+    uint32_t wifi_disconnect_events, mqtt_disconnect_events;
+    home_mqtt_failure_t mqtt_failure;
 } home_network_state_t;

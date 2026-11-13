@@ -157,6 +157,13 @@ async function run() {
   assert.equal(client.validState(state({ simulated: true, source: 'simulation', online: false })), true)
   assert.match(client.displayState(state({ simulated: true, source: 'simulation', fan_on: true })).fan, /模拟/)
   assert.equal(client.displayState(state({ temperature_fault: true })).temperature, '-- / 故障或过期')
+  assert.match(client.networkDiagnostic({ network_hint: 'mqtt_auth_rejected' }), /认证或授权/)
+  assert.match(client.networkDiagnostic({ network_hint: 'mqtt_transport_error' }), /1883/)
+  assert.match(client.networkDiagnostic({ network_hint: 'mqtt_disabled' }), /未配置/)
+  assert.match(client.networkDiagnostic({ network_hint: 'online', last_mqtt_code: 5 }), /已连接/)
+  assert.match(client.networkDiagnostic({ network_hint: 'unknown_future_hint' }), /未提供/)
+  assert.equal(client.displayState(state({ network_hint: 'mqtt_auth_rejected' })).networkHint,
+    client.networkDiagnostic({ network_hint: 'mqtt_auth_rejected' }))
   console.log('PASS: mini program device switching, late callbacks, page lifecycle, sample/link ageing and ACK ownership')
   console.log('NOT RUN: official WeChat compiler/runtime, phone LAN permissions and physical sensors/loads')
 }
